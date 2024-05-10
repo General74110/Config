@@ -1,14 +1,1 @@
-- type: vless
-  name: vlessl.general74110.workers.dev
-  server: vlessl.general74110.workers.dev
-  port: 443
-  uuid: f6309f96-194a-4e93-aa92-eb0a2804b1e3
-  network: ws
-  tls: true
-  udp: false
-  sni: vlessl.general74110.workers.dev
-  client-fingerprint: chrome
-  ws-opts:
-    path: "/?ed=2048"
-    headers:
-      host: vlessl.general74110.workers.dev
+vless://f6309f96-194a-4e93-aa92-eb0a2804b1e3@vlessl.general74110.workers.dev:443?encryption=none&security=tls&sni=vlessl.general74110.workers.dev&fp=randomized&type=ws&host=vlessl.general74110.workers.dev&path=%2F%3Fed%3D2048#vlessl.general74110.workers.dev
