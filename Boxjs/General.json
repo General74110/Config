@@ -2,8 +2,8 @@
   "id": "General℡",
   "name": "General℡ 脚本订阅",
   "author": "@General74110",
-  "icon": "https://raw.githubusercontent.com/General74110/Quantumult-X/master/icon/profile.png",
-  "repo": "https://github.com/General74110/Quantumult-X",
+  "icon": "https://raw.githubusercontent.com/General74110/Config/master/icon/profile.png",
+  "repo": "https://github.com/General74110",
   "apps": [
     {
       "id": "Kuwomusic",
@@ -32,12 +32,12 @@
         }
       ],
       "author": "@General℡",
-      "repo": "https://raw.githubusercontent.com/General74110/Quantumult-X/tree/master/Task",
+      "repo": "https://github.com/General74110/Config/blob/master/Script/Task",
       "icons": [
         "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/KKTV.png",
         "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/KKTV.png"
       ],
-      "script": "https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/Kuwomusic.js"
+      "script": "https://github.com/General74110/Config/blob/master/Script/Task/Kuwomusic.js"
     },
     {
       "id": "QQreader",
@@ -47,7 +47,7 @@
         "clearCookies"
       ],
       "author": "@General℡",
-      "repo": "https://raw.githubusercontent.com/General74110/Quantumult-X/tree/master/Task",
+      "repo": "https://github.com/General74110/Config/blob/master/Script/Task",
       "icons": [
         "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png",
         "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png"
@@ -70,7 +70,7 @@
           "desc": ""
         }
       ],
-      "script": "https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/QQreader.js"
+      "script": "https://github.com/General74110/Config/blob/master/Script/Task/QQreader.js"
     },
     {
       "id": "kuwo",
@@ -98,9 +98,9 @@
           "desc": "多个 SID 用 @ 分隔"
         }
       ],
-      "script": "https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/kuwo.js",
+      "script": "https://github.com/General74110/Config/blob/master/Script/Task/kuwo.js",
       "author": "@General℡",
-      "repo": "https://raw.githubusercontent.com/General74110/Quantumult-X/tree/master/Task",
+      "repo": "https://github.com/General74110/Config/blob/master/Script/Task",
       "icons": [
         "https://raw.githubusercontent.com/deezertidal/private/main/icons/kuwosvip.png",
         "https://raw.githubusercontent.com/deezertidal/private/main/icons/kuwosvip.png"
