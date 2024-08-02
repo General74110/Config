@@ -23,7 +23,7 @@ IP-CIDR,121.11.192.0/24,no-resolve
 ip-cidr, 203.107.1.1/24, REJECT
 
 [Script]
-http-request ^https:\/\/ap(p|i)\.bili(bili|api)\.(com|net)\/x\/v\d\/search(\/type)?\?.+?%20(%E6%B8%AF|%E5%8F%B0|%E4%B8%AD)& script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/Bilibili/Bili_Auto_Regions.js, timeout=60, tag=Bili_Auto_Regions
+http-request ^https:\/\/ap(p|i)\.bili(bili|api)\.(com|net)\/x\/v\d\/search(\/type)?\?.+?%20(%E6%B8%AF|%E5%8F%B0|%E4%B8%AD)& script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Bilibili/Bili_Auto_Regions.js, timeout=60, tag=Bili_Auto_Regions
 
 
 
