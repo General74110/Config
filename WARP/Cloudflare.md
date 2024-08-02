@@ -1,1 +1,0 @@
-vless://f6309f96-194a-4e93-aa92-eb0a2804b1e3@vlessl.general74110.workers.dev:443?encryption=none&security=tls&sni=vlessl.general74110.workers.dev&fp=randomized&type=ws&host=vlessl.general74110.workers.dev&path=%2F%3Fed%3D2048#vlessl.general74110.workers.dev

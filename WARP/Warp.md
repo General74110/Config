@@ -1,1 +1,0 @@
-WARP = wireguard,interface-ip=172.16.0.2,interface-ipv6=2606:4700:110:810f:48d0:40ef:9d1f:373c,private-key="eG7ATO7ELK1d+q6JMIPTvbmHeKTKXZif5zTmeOrSG28=",mtu=1280,dns=1.1.1.1,dnsv6=2606:4700:4700::1111,keepalive=45,peers=[{public-key="bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",allowed-ips="0.0.0.0/0,::/0",endpoint=engage.nanocat.cloud:2408,reserved=[230,234,76]}]
