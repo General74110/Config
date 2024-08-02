@@ -13,7 +13,7 @@ DOMAIN-SUFFIX,boxjs.net,PROXY
 
 [Rewrite]
 
-^https?://(boxjs\.com)/?$ 302 https://dompling.github.io/boxjs.react/#
+^http://(boxjs\.com)/?$ 302 https://dompling.github.io/boxjs.react/#
 
 [MITM]
 hostname = boxjs.com, boxjs.net
