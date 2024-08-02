@@ -1,0 +1,24 @@
+#!name= Get Cookies
+#!desc= 用于获取Cookies(酷我音乐&QQ阅读&书旗小说)
+#!author= @General℡
+#!homepage= https://github.com/General74110/Loon
+#!date = 2024-4-20
+#!icon= https://raw.githubusercontent.com/black2c7/TheMagic-Icons/main/Icons/Shouhou.png
+
+
+[Script]
+http-request ^https:\/\/integralapi\.kuwo\.cn\/api\/v1\/online\/sign\/v1\/music\/userBase\? script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/Kuwomusic.js, requires-body=true, timeout=10, enabled=true, tag=酷我音乐刷时长获取Cookie, img-url=https://raw.githubusercontent.com/LovedGM/Quantumult-X-TuBiao/main/zishi-cs/zs23.png
+
+
+http-request ^https:\/\/eventv3\.reader\.qq\.com\/activity\/new_welfare\/queryAwardList script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
+
+
+http-request ^https?:\/\/ocean\.shuqireader\.com\/api\/ad\/prize\/video\/reward script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/Shuqi.js, requires-body=true, timeout=10, enabled=true, tag=书旗小说刷听书时长, img-url=https://raw.githubusercontent.com/erdongchanyo/icon/main/taskicon/Shuqixiaoshuo.png
+
+
+http-request https://appi.kuwo.cn/api/automobile/kuwo/v1/configuration/signature script-path=https://raw.githubusercontent.com/General74110/Config/master/Quantumult%20X/Task/kuwo_Cookies.js, requires-body=true, timeout=60, enabled=true, tag=酷我音乐获取Cookies, img-url=https://raw.githubusercontent.com/deezertidal/private/main/icons/kuwosvip.png
+
+
+
+[MITM]
+hostname = eventv3.reader.qq.com, ocean.shuqireader.com, appi.kuwo.cn

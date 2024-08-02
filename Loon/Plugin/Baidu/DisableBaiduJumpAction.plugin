@@ -1,0 +1,12 @@
+#!name= 解决Safari中疯狂跳转百度
+#!desc= 防止搜索时自动跳转百度
+#!icon= https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/icon/task/baidu.png
+
+
+[Script]
+http-request ^https?:\/\/.*\.baidu\.com\/.+, requires-header=true, script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/Baidu/DisableBaiduJumpAction.js, tag=解决Safari中疯狂跳转百度
+
+
+
+[MITM]
+hostname = *.baidu.com

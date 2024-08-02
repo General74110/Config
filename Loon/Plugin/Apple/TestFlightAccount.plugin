@@ -1,0 +1,10 @@
+#!name=TestFlight账户管理脚本并集成区域限制解除
+#!desc=TestFlight区域限制解除(适用于国区更新外区TF App时, 提示"APP不可用"问题.)
+#!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/App_Store.png
+
+[Script]
+#[rewrite_local]
+http-request ^https:\/\/testflight\.apple\.com\/v\d\/(app|account|invite)s\/ script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/Apple/TestFlightAccount.js, requires-body=true, timeout=60, tag=TestFlight账户管理脚本并集成区域限制解除
+
+[MITM]
+hostname = testflight.apple.com

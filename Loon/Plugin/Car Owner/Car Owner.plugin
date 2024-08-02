@@ -1,0 +1,12 @@
+#!name=车帮主
+#!desc=车帮主解锁 查找车辆 行驶轨迹 等付费服务
+#!author=披袈裟点戒疤
+#!homepage = https://github.com/General74110/Loon
+#!icon = https://raw.githubusercontent.com/General74110/Quantumult-X/master/icon/chebangzhu.PNG
+
+
+[MITM]
+hostname = tsp-operation.txzing.com
+
+[Script]
+车帮主 = type=http-response,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/Bili_Auto_Regions.js,pattern=^https^https:\/\/tsp\.txzing\.com\/api(\/p/operation/common/allowFreeVip|\/p/operation/vipCoupon/popUpCouponInfo|\/p/operation/activity/situation|\/w/wx/module/findCar/findCarVipInfo/isVip|\/w/wx/module/trace/userVip|\/w/wx/module/traceMp/traceUserVipOpenId/vipInfo|\/w\/wx\/module\/smallProgram\/userInfo|\/wx\/module\/smallProgram\/userInfo\/banner)&,timeout=10,enable=true

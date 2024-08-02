@@ -1,0 +1,19 @@
+#!name= 京东淘宝比价
+#!desc= 在京东应用内嵌入比价信息，点击商品标题即可查看。
+#!author= @ General℡
+#!homepage = https://github.com/General74110/Loon
+#!icon = https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Taobao.png
+
+
+
+[Script]
+# 京东比价
+http-response ^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig|basicConfig) script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/JD-TB/JD_TB_price.js, requires-body=true, timeout=60, tag=main
+
+# 淘宝比价
+http-request ^http://.+/amdc/mobileDispatch script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/JD-TB/JD_TB_price.js, requires-body=true, timeout=60, tag=main
+
+http-response ^https?://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/JD-TB/JD_TB_price.js, requires-body=true, timeout=60, tag=main
+
+[MITM]
+hostname = api.m.jd.com, trade-acs.m.taobao.com

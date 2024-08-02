@@ -1,0 +1,13 @@
+#!name=Google重定向
+#!desc= Safari 谷歌搜索重定向
+#!author= @General℡
+#!homepage = https://github.com/General74110/Loon
+#!icon = https://raw.githubusercontent.com/Semporia/Hand-Painted-icon/master/Google_Suite/Google_Maps.png
+#!system=ios
+
+[Rewrite]
+^https?://(www.)?g.cn https://www.google.com 302
+^https?://(www.)?google.cn https://www.google.com 302
+
+[MITM]
+hostname = www.google.cn, www.g.cn

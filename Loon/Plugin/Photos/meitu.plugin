@@ -1,0 +1,11 @@
+#!name=美图欣赏
+#!desc=多看美图助于身心健康😊
+#!icon=https://raw.githubusercontent.com/LovedGM/Quantumult-X-TuBiao/main/zishi-cs/zs18.png
+
+[Script]
+http-request ^https?:\/\/mei\.tu script-path=https://raw.githubusercontent.com/Yuheng0101/X/main/Tasks/meitu/meitu.js, requires-body=true, timeout=60, tag=meitu
+
+cron "30 20 * * *" script-path=https://raw.githubusercontent.com/Yuheng0101/X/main/Tasks/meitu/meitu.js, timeout=120, tag=美图鉴赏, img-url=https://raw.githubusercontent.com/LovedGM/Quantumult-X-TuBiao/main/zishi-cs/zs18.png
+
+[MITM]
+hostname = mei.tu
