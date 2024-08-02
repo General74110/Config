@@ -4,7 +4,7 @@
 
 
 [Script]
-http-request ^https?:\/\/.*\.baidu\.com\/.+, requires-header=true, script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Script/Baidu/DisableBaiduJumpAction.js, tag=解决Safari中疯狂跳转百度
+http-request ^https?:\/\/.*\.baidu\.com\/.+, requires-header=true, script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Baidu/DisableBaiduJumpAction.js, tag=解决Safari中疯狂跳转百度
 
 
 
