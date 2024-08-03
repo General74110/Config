@@ -16,4 +16,4 @@ DOMAIN-SUFFIX,boxjs.net,PROXY
 ^http:\/\/boxjs\.(com|net)/?$ 302 https://dompling.github.io/boxjs.react/#
 
 [MITM]
-hostname = %INSERT% boxjs.com, boxjs.net, *.boxjs.com, *.boxjs.net
+hostname = %INSERT%, boxjs.com, boxjs.net, *.boxjs.com, *.boxjs.net
