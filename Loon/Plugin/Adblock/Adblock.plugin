@@ -8,7 +8,7 @@
 [Rule]
 # 爱思助手开屏广告
 URL-REGEX,https:\/\/list-app-m\.i4\.cn\/getopfstadinfo\.xhtml,REJECT-DICT-NO-DROP
-URL-REGEX,http:\/\/d\.image\.i4\.cn\/adInfo\/image\/original\/(.+),REJECT-IMG-NO-DROP
+URL-REGEX,http:\/\/d\.image\.i4\.cn\/adInfo\/image\/original\/(.+),REJECT
 
 
 [Rewrite]
