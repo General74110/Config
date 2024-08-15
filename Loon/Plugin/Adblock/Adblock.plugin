@@ -1,5 +1,5 @@
 #!name= Adblock(自己写的去广告)
-#!desc= QQ阅读开屏广告和 我的-页面活动(⚠️需卸载重装!!!)++书旗小说去广告&酷我音乐AD&安心记加班开屏
+#!desc= QQ阅读开屏广告和 我的-页面活动(⚠️需卸载重装!!!)++酷我音乐AD&安心记加班开屏
 #!author= General℡
 #!homepage = https://github.com/General74110/Loon
 #!icon = https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Advertising.png
@@ -12,16 +12,12 @@ URL-REGEX,http:\/\/d\.image\.i4\.cn\/adInfo\/image\/original\/(.+),REJECT
 
 
 [Rewrite]
-# 书旗小说听书页面广告
-^https:\/\/ocean\.shuqireader\.com\/api\/route\/listenPage(V2|\?) - reject
 
 
 [Script]
 # QQ阅读开屏广告 (⚠️需卸载重装!!!)
 http-response ^https?:\/\/(us\.l\.qq\.com\/exapp|commontgw\.reader\.qq\.com\/common\/adV3|commontgw\.reader\.qq\.com\/common\/firstOpenApp\/ad\?) script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Adblock/qqreader.js, requires-body=true, timeout=60, tag=QQ阅读去广告, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
 
-# 书旗小说去广告
-http-response iios\/act|\/nativead^https:\/\/(ocean\.shuqireader\.com\/api|huichuan\.sm\.cn)(\/ad\/adserver\/v1\/api\/getAdInfo|\/route\/month\/commodityInfo|\/route\/iosReadPage\/adV2|\/route\/ios\/readPage|\/iosReadPage\/adTurnChapter|\/jbookmark\/api\/shuq) script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Adblock/sqreader.js, requires-body=true, timeout=60, tag=书旗小说去广告, img-url=https://raw.githubusercontent.com/black2c7/TheMagic-Icons/main/Icons/Sifei.png
 
 # 酷我音乐AD
 http-response ^http:\/\/(rich|wapi)\.kuwo\.cn\/(AdService\/kaiping\/(getcache|adinfo)|openapi\/v1\/album\/adBar\/getTsAdConfig)\? script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Adblock/KuwoAd.js, requires-body=true, timeout=60, tag=酷我音乐开屏, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/KKTV.png
@@ -30,4 +26,4 @@ http-response ^http:\/\/(rich|wapi)\.kuwo\.cn\/(AdService\/kaiping\/(getcache|ad
 http-response ^https?:\/\/jjbapi\.julanling\.com\/(advertConfig\/queryCutOverScreenConfig|splash_screen\/jjb_splash_screen_v3)\? script-path= https://raw.githubusercontent.com/General74110/Config/master/Script/Adblock/AnxinjiAd.js, requires-body=true, timeout=60, tag=安心记加班, img-url=https://raw.githubusercontent.com/black2c7/TheMagic-Icons/main/Icons/Alink.png
 
 [MITM]
-hostname = us.l.qq.com, *.reader.qq.com, ocean.shuqireader.com, huichuan.sm.cn, rich.kuwo.cn, wapi.kuwo.cn, jjbapi.julanling.com, list-app-m.i4.cn,d.image.i4.cn
+hostname = us.l.qq.com, *.reader.qq.com, rich.kuwo.cn, wapi.kuwo.cn, jjbapi.julanling.com, list-app-m.i4.cn,d.image.i4.cn
