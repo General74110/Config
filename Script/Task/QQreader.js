@@ -17,7 +17,7 @@ Boxjs定阅(https://raw.githubusercontent.com/General74110/Quantumult-X/master/B
 
 
 使用声明：⚠️⚠️⚠️此脚本仅供学习与交流，转载请注明出处
-        请勿贩卖！⚠️⚠️⚠️
+        请勿转载与贩卖！⚠️⚠️⚠️
 
 [Script]
 http-request ^https:\/\/eventv3\.reader\.qq\.com\/activity\/new_welfare\/queryAwardList script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
@@ -39,143 +39,134 @@ const logs = 0;  // 设置0关闭日志, 1开启日志
 let status;
 status = (status = ($.getval("status") || "1")) > 1 ? `${status}` : "";
 
-// 初始化存储数组
 const ywguidArr = [], ywkeyArr = [], ywtokenArr = [], csigsArr = [];
 
-//let ywkey = $.getdata('ywkey');
-//let ywguid = $.getdata('ywguid');
-//let ywtoken = $.getdata('ywtoken');
-//let csigs = $.getdata('csigs');
+let globalCookie = '';
+let boxVideoTotalCoins = 0;
+let t = "";
 
-let globalCookie = '';  // 全局存储生成的Cookie
-
-// 主函数
 !(async () => {
   if (typeof $request !== "undefined") {
-      GetCookies();
+    GetCookies();
   } else {
-      // 初始化 ywguid 和 ywkey 数组
-      ywkeyArr.push($.getdata('ywkey'));
-      ywguidArr.push($.getdata('ywguid'));
-      ywtokenArr.push($.getdata('ywtoken'));
-      csigsArr.push($.getdata('csigs'));
 
-      let count = ($.getval('count') || '1');
+    ywkeyArr.push($.getdata('ywkey'));
+    ywguidArr.push($.getdata('ywguid'));
+    ywtokenArr.push($.getdata('ywtoken'));
+    csigsArr.push($.getdata('csigs'));
 
-      for (let i = 2; i <= count; i++) {
-          ywkeyArr.push($.getdata(`ywkey${i}`));
-          ywguidArr.push($.getdata(`ywguid${i}`));
-          ywtokenArr.push($.getdata(`ywtoken${i}`));
-          csigsArr.push($.getdata(`csigs${i}`));
+    let count = ($.getval('count') || '1');
+
+    for (let i = 2; i <= count; i++) {
+      ywkeyArr.push($.getdata(`ywkey${i}`));
+      ywguidArr.push($.getdata(`ywguid${i}`));
+      ywtokenArr.push($.getdata(`ywtoken${i}`));
+      csigsArr.push($.getdata(`csigs${i}`));
+    }
+
+    console.log(
+      `\n\n=============================================== 脚本执行 - 北京时间(UTC+8)：${new Date(
+        new Date().getTime() +
+        new Date().getTimezoneOffset() * 60 * 1000 +
+        8 * 60 * 60 * 1000
+      ).toLocaleString()} ===============================================\n`);
+
+
+    globalCookie = buildCookie(ywguidArr[0], ywkeyArr[0], ywtokenArr[0], csigsArr[0]);
+    if (logs == 1)
+      console.log(`生成全局 Cookie: ${globalCookie}`);
+
+    for (let i = 0; i < ywguidArr.length; i++) {
+      if (ywguidArr[i] && ywkeyArr[i] && ywtokenArr[i]) {
+        $.index = i + 1;
+        console.log(`\n\n开始【QQ阅读任务】`);
+
+
+        await NickName(globalCookie);
+        await $.wait(1000);  // 延迟 1 秒
+        await CheckinSign(globalCookie);
+        await $.wait(1000);  // 延迟 1 秒
+        await BoxVideo(globalCookie); // 宝箱视频
+        await $.wait(1000);  // 延迟 1 秒
+        await QuerVideo(globalCookie); // 等级内广告视频
+
+        const currentDay = new Date().getDay();
+        const currentDate = new Date().getDate();
+
+        // 仅在周日运行周抽奖
+        if (currentDay === 0) {
+          await GetAwardWeek(globalCookie); // 周抽奖
+        }
+
+        // 仅在每月15号运行月抽奖
+        if (currentDate === 15) {
+          await GetAwardMonth(globalCookie); // 月抽奖
+        }
+        await $.wait(1000);  // 延迟 1 秒
+        await Msg(); // 通知
       }
+    }
+  }
 
-      console.log(
-          `\n\n=============================================== 脚本执行 - 北京时间(UTC+8)：${new Date(
-              new Date().getTime() +
-              new Date().getTimezoneOffset() * 60 * 1000 +
-              8 * 60 * 60 * 1000
-          ).toLocaleString()} ===============================================\n`);
-
-      // 生成一次全局 Cookie
-      globalCookie = buildCookie(ywguidArr[0], ywkeyArr[0], ywtokenArr[0], csigsArr[0]);
-      if (logs == 1)
-        console.log(`生成全局 Cookie: ${globalCookie}`);
-
-      // 遍历 ywguidArr 数组，执行任务
-      for (let i = 0; i < ywguidArr.length; i++) {
-          if (ywguidArr[i] && ywkeyArr[i] && ywtokenArr[i]) {
-              $.index = i + 1;
-              console.log(`\n\n开始【QQ阅读任务】`);
-
-              // 直接使用全局生成的 Cookie
-              await NickName(globalCookie);
-              await $.wait(1000);  // 延迟 1 秒
-              await CheckinSign(globalCookie);
-              await $.wait(1000);  // 延迟 1 秒
-              await BoxVideo(globalCookie); // 宝箱视频
-              await $.wait(1000);  // 延迟 1 秒
-              await QuerVideo(globalCookie); // 等级内广告视频
-
-              const currentDay = new Date().getDay();
-              const currentDate = new Date().getDate();
-
-              // 仅在周日运行周抽奖
-              if (currentDay === 0) {
-                  await GetAwardWeek(globalCookie); // 周抽奖
-              }
-
-              // 仅在每月15号运行月抽奖
-              if (currentDate === 15) {
-                  await GetAwardMonth(globalCookie); // 月抽奖
-              }
-              await $.wait(1000);  // 延迟 1 秒
-              await Msg(); // 通知
-          }
-          }
-      }
-  
 })()
   .catch((e) => $.logErr(e))
   .finally(() => $.done());
 
-/**
-* 封装生成 Cookie 的函数
-* 传入 ywguid 和 ywkey，根据当前时间生成 qrtm 和随机 UUID IFDA
-*/
-function buildCookie(ywguid, ywkey, ywtoken, csigs) {
-    //时间戳生成等逻辑保持不变
-    function trs() {
-        return Date.now().toString();
-    }
-    function ts() {
-        return Math.floor(Date.now() / 1000).toString();
-    }
-    
-    let IFDA = udid();
-    let qrsn = udid2();
 
-    // 构建 Cookie
-    let Cookie = `IFDA=${IFDA}; c_version=qqreader_8.1.62.0607_iphone;  csigs=${csigs};  loginType=1; platform=ioswp; qrsn=${qrsn}; qrsn_new=${qrsn};  qrtm=${ts()}; ttime=${trs()}; ywguid=${ywguid}; ywkey=${ywkey}; ywtoken=${ywtoken}`;
-    
-    return Cookie;
+function buildCookie(ywguid, ywkey, ywtoken, csigs) {
+
+  function trs() {
+    return Date.now().toString();
+  }
+  function ts() {
+    return Math.floor(Date.now() / 1000).toString();
+  }
+
+  let IFDA = udid();
+  let qrsn = udid2();
+
+  // 构建 Cookie
+  let Cookie = `IFDA=${IFDA}; c_version=qqreader_8.1.62.0607_iphone;  csigs=${csigs};  loginType=1; platform=ioswp; qrsn=${qrsn}; qrsn_new=${qrsn};  qrtm=${ts()}; ttime=${trs()}; ywguid=${ywguid}; ywkey=${ywkey}; ywtoken=${ywtoken}`;
+
+  return Cookie;
 }
 
 /**
-* 获取昵称，传入 Cookie
+* 获取昵称
 */
 function NickName(Cookie) {
-    return new Promise((resolve) => {
-        let Url = {
-            url: "https://commontgw.reader.qq.com/account/h5/level/mine",
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Cookie': Cookie,
-            }
-        };
+  return new Promise((resolve) => {
+    let Url = {
+      url: "https://commontgw.reader.qq.com/account/h5/level/mine",
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+      }
+    };
 
-        $.get(Url, async (err, resp, data) => {
-            if (err) {
-                console.log(`请求失败: ${err}`);
-                resolve();
-                return;
-            }
-            if (logs == 1) {
-                console.log(`响应状态码: ${resp.status}`);  // 打印状态码
-                console.log(`原始响应体: ${data}`);  // 打印原始响应体
-            }
-            try {
-                data = JSON.parse(data);
-                if (logs == 1) 
-                    console.log(`⚠️获取昵称数据: ${data.data.nickName}`);
-                $.nickName = data;
-            } catch (e) {
-                console.log(`解析 JSON 出错: ${e}`);
-                console.log(`原始响应体: ${data}`);  // 打印原始响应体
-            } finally {
-                resolve();
-            }
-        });
+    $.get(Url, async (err, resp, data) => {
+      if (err) {
+        console.log(`请求失败: ${err}`);
+        resolve();
+        return;
+      }
+      if (logs == 1) {
+        console.log(`响应状态码: ${resp.status}`);  // 打印状态码
+        console.log(`原始响应体: ${data}`);  // 打印原始响应体
+      }
+      try {
+        data = JSON.parse(data);
+        if (logs == 1)
+          console.log(`⚠️获取昵称数据: ${data.data.nickName}`);
+        $.nickName = data;
+      } catch (e) {
+        console.log(`解析 JSON 出错: ${e}`);
+        console.log(`原始响应体: ${data}`);  // 打印原始响应体
+      } finally {
+        resolve();
+      }
     });
+  });
 }
 
 /**
@@ -183,65 +174,65 @@ function NickName(Cookie) {
 */
 // 随机udid 大写
 function udid() {
-    var s = [];
-    var hexDigits = "0123456789ABCDEF";
-    for (var i = 0; i < 36; i++) {
-        s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-    }
-    s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
-    s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
-    s[8] = s[13] = s[18] = s[23] = "-";
+  var s = [];
+  var hexDigits = "0123456789ABCDEF";
+  for (var i = 0; i < 36; i++) {
+    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+  }
+  s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+  s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+  s[8] = s[13] = s[18] = s[23] = "-";
 
-    return s.join("");
+  return s.join("");
 }
 
 // 随机udid 小写
 function udid2() {
-    function S4() {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-    }
-    return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+  function S4() {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+  }
+  return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
 }
 
 // 获取Cookies
 function GetCookies() {
-    if ($request.url.indexOf("/new_welfare/init") > -1) {
-        let cookie = $request.headers['Cookie'];
+  if ($request.url.indexOf("/new_welfare/init") > -1) {
+    let cookie = $request.headers['Cookie'];
 
-        if (cookie) {
-            const ywkeyMatch = cookie.match(/ywkey=([^;]*)/);
-            const ywguidMatch = cookie.match(/ywguid=([^;]*)/);
-            const ywtokenMatch = cookie.match(/ywtoken=([^;]*)/);
-            const csigsMatch = cookie.match(/csigs=([^;]*)/);
+    if (cookie) {
+      const ywkeyMatch = cookie.match(/ywkey=([^;]*)/);
+      const ywguidMatch = cookie.match(/ywguid=([^;]*)/);
+      const ywtokenMatch = cookie.match(/ywtoken=([^;]*)/);
+      const csigsMatch = cookie.match(/csigs=([^;]*)/);
 
-            if (ywkeyMatch) {
-                const ywkey = ywkeyMatch[1];
-                $.setdata(ywkey, 'ywkey');
-                $.log(`获取到的 ywkey: ${ywkey}`);
-            }
+      if (ywkeyMatch) {
+        const ywkey = ywkeyMatch[1];
+        $.setdata(ywkey, 'ywkey');
+        $.log(`获取到的 ywkey: ${ywkey}`);
+      }
 
-            if (ywguidMatch) {
-                const ywguid = ywguidMatch[1];
-                $.setdata(ywguid, 'ywguid');
-                $.log(`获取到的 ywguid: ${ywguid}`);
-            }
+      if (ywguidMatch) {
+        const ywguid = ywguidMatch[1];
+        $.setdata(ywguid, 'ywguid');
+        $.log(`获取到的 ywguid: ${ywguid}`);
+      }
 
-            if (ywtokenMatch) {
-                const ywtoken = ywtokenMatch[1];
-                $.setdata(ywtoken, 'ywtoken');
-                $.log(`获取到的 ywtoken: ${ywtoken}`);
-            }
+      if (ywtokenMatch) {
+        const ywtoken = ywtokenMatch[1];
+        $.setdata(ywtoken, 'ywtoken');
+        $.log(`获取到的 ywtoken: ${ywtoken}`);
+      }
 
-            if (csigsMatch) {
-                const csigs = csigsMatch[1];
-                $.setdata(csigs, 'csigs');
-                $.log(`获取到的 csigs: ${csigs}`);
-            }
+      if (csigsMatch) {
+        const csigs = csigsMatch[1];
+        $.setdata(csigs, 'csigs');
+        $.log(`获取到的 csigs: ${csigs}`);
+      }
 
-            $.setdata(cookie, 'updatedCookie');
-            $.msg($.name, "", `QQ阅读获取 Cookie 成功`);
-        }
+      $.setdata(cookie, 'updatedCookie');
+      $.msg($.name, "", `QQ阅读获取 Cookie 成功`);
     }
+  }
 }
 
 
@@ -253,71 +244,35 @@ function GetCookies() {
 */
 function NickName(Cookie) {
   return new Promise((resolve) => {
-      let Url = {
-          url: "https://commontgw.reader.qq.com/account/h5/level/mine",
-          headers: {
-            
-    'Accept':'application/json, text/plain, */*',
-              'Cookie': Cookie,
-  
-              
-          }
-      };
-
-      $.get(Url, async (err, resp, data) => {
-        if (err) {
-            console.log(`请求失败: ${err}`);
-            resolve();
-            return;
-        }
-        if (logs == 1) {
-        console.log(`响应状态码: ${resp.status}`); // 打印状态码
-        console.log(`原始响应体: ${data}`); // 打印原始响应体
-        }
-        try {
-            data = JSON.parse(data);
-            if (logs == 1) 
-                console.log(`⚠️获取昵称数据: ${data.data.nickName}`);
-            $.nickName = data;
-        } catch (e) {
-            console.log(`解析 JSON 出错: ${e}`);
-            console.log(`原始响应体: ${data}`); // 打印原始响应体
-        } finally {
-            resolve();
-        }
-    });
-});
-}
-
-
- // 签到
- function CheckinSign(Cookie) {
-  return new Promise((resolve) => {
-
     let Url = {
-      url: "https://eventv3.reader.qq.com/activity/new_welfare/sign",
+      url: "https://commontgw.reader.qq.com/account/h5/level/mine",
       headers: {
-            
-        'Accept':'application/json, text/plain, */*',
-                  'Cookie': Cookie,
-      
-                  
-              }
+
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+
+
+      }
     };
+
     $.get(Url, async (err, resp, data) => {
+      if (err) {
+        console.log(`请求失败: ${err}`);
+        resolve();
+        return;
+      }
       if (logs == 1) {
         console.log(`响应状态码: ${resp.status}`); // 打印状态码
         console.log(`原始响应体: ${data}`); // 打印原始响应体
-        }
+      }
       try {
         data = JSON.parse(data);
-        if (logs == 1) {
-          console.log(`⚠️签到结果数据: ${data.msg}`);
-        }
-        $.checkin = data;
+        if (logs == 1)
+          console.log(`⚠️获取昵称数据: ${data.data.nickName}`);
+        $.nickName = data;
       } catch (e) {
         console.log(`解析 JSON 出错: ${e}`);
-            console.log(`原始响应体: ${data}`); // 打印原始响应体
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
       } finally {
         resolve();
       }
@@ -326,32 +281,68 @@ function NickName(Cookie) {
 }
 
 
- // 周抽奖
- function GetAwardWeek(Cookie) {
+// 签到
+function CheckinSign(Cookie) {
   return new Promise((resolve) => {
 
     let Url = {
-      url: "https://eventv3.reader.qq.com/activity/new_welfare/getAward?entrance=week",
+      url: "https://eventv3.reader.qq.com/activity/new_welfare/sign",
       headers: {
-            
-        'Accept':'application/json, text/plain, */*',
-                  'Cookie': Cookie,
-      
-                  
-              }
+
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+
+
+      }
     };
     $.get(Url, async (err, resp, data) => {
       if (logs == 1) {
         console.log(`响应状态码: ${resp.status}`); // 打印状态码
         console.log(`原始响应体: ${data}`); // 打印原始响应体
+      }
+      try {
+        data = JSON.parse(data);
+        if (logs == 1) {
+          console.log(`⚠️签到结果数据: ${data.msg}`);
         }
+        $.checkin = data;
+      } catch (e) {
+        console.log(`解析 JSON 出错: ${e}`);
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
+      } finally {
+        resolve();
+      }
+    });
+  });
+}
+
+
+// 周抽奖
+function GetAwardWeek(Cookie) {
+  return new Promise((resolve) => {
+
+    let Url = {
+      url: "https://eventv3.reader.qq.com/activity/new_welfare/getAward?entrance=week",
+      headers: {
+
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+
+
+      }
+    };
+    $.get(Url, async (err, resp, data) => {
+      if (logs == 1) {
+        console.log(`响应状态码: ${resp.status}`); // 打印状态码
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
+      }
       try {
         data = JSON.parse(data);
         if (logs == 1) console.log(`⚠️周抽奖结果数据: ${data.msg}`);
         $.awardWeek = data;
       } catch (e) {
         console.log(`解析 JSON 出错: ${e}`);
-            console.log(`原始响应体: ${data}`); // 打印原始响应体
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
       } finally {
         resolve();
       }
@@ -362,23 +353,23 @@ function NickName(Cookie) {
 // 月抽奖
 function GetAwardMonth(Cookie) {
   return new Promise((resolve) => {
-    
+
     // 构造 URL
     const Url = {
-        url: `https://eventv3.reader.qq.com/activity/new_welfare/getAward?entrance=month`,
-        headers: {
-            
-          'Accept':'application/json, text/plain, */*',
-                    'Cookie': Cookie,
-        
-                    
-                }
+      url: `https://eventv3.reader.qq.com/activity/new_welfare/getAward?entrance=month`,
+      headers: {
+
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+
+
+      }
     };
     $.get(Url, async (err, resp, data) => {
       if (logs == 1) {
         console.log(`响应状态码: ${resp.status}`); // 打印状态码
         console.log(`原始响应体: ${data}`); // 打印原始响应体
-        }
+      }
       try {
         data = JSON.parse(data);
         if (logs == 1) console.log(`⚠️月抽奖结果数据: ${data}`);
@@ -402,20 +393,32 @@ function sleep(ms) {
 
 
 // 宝箱视频任务，循环运行 3 次，但当任务已经领取时，跳过后续操作
-async function BoxVideo(Cookie) {  // 修正：添加 Cookie 参数传递
+async function BoxVideo(Cookie) {
+  let totalCoins = 0;  // 用于累加每次宝箱视频获得的赠币
   for (let i = 1; i <= 3; i++) {
     let result = await runBoxVideo(Cookie, i);  // 修正：传递 Cookie 参数
     if (result.code === -1) {
       console.log("宝箱视频任务已经完成，跳过后续任务执行。\n");
       break; // 如果已经领取，停止后续执行
     }
+
+    totalCoins += result.data;  // 累加每次宝箱获得的赠币
+
     if (i < 3) {  // 在第 1、2 次循环后，执行延时
       let delay = i === 1 ? 5000 : 10000;  // 第一次延迟5秒，第二次延迟10秒
       console.log(`宝箱视频第 ${i} 次任务执行完毕，等待 ${delay / 1000} 秒后执行下一次任务...\n`);
       await sleep(delay); // 使用 sleep 函数进行延时
     }
   }
+
+  // 将总的赠币累加到全局变量
+  boxVideoTotalCoins += totalCoins;
+
+  console.log(`宝箱视频任务总共获得 ${totalCoins} 💰赠币\n`);
 }
+
+
+
 
 
 
@@ -423,39 +426,39 @@ async function BoxVideo(Cookie) {  // 修正：添加 Cookie 参数传递
 // 实际执行的宝箱视频任务
 function runBoxVideo(Cookie, i) {
   return new Promise((resolve) => {
-      const Url = {
-          url: `https://eventv3.reader.qq.com/activity/new_welfare/receiveVideo?type=70526242`,
-          headers: {
-            
-            'Accept':'application/json, text/plain, */*',
-                      'Cookie': Cookie,
-          
-                      
-                  }
-      };
+    const Url = {
+      url: `https://eventv3.reader.qq.com/activity/new_welfare/receiveVideo?type=70526242`,
+      headers: {
 
-      $.get(Url, async (err, resp, data) => {
-        if (logs == 1) {
-          console.log(`响应状态码: ${resp.status}`); // 打印状态码
-          console.log(`原始响应体: ${data}`); // 打印原始响应体
-          }
-          try {
-              data = JSON.parse(data);  // 解析 JSON 数据
-              if (logs == 1) console.log(`⚠️宝箱视频任务执行结果 (第 ${i} 次): ${data.msg}`);
-              if (data.code === 0) {
-                  $.boxVideo = data;  // 只有在成功时才保存
-              } else {
-                  $.boxVideo = { code: data.code, msg: data.msg };  // 保存错误信息
-              }
-              
-              resolve(data); // 返回数据结果，用于停止循环
-          } catch (e) {
-            console.log(`解析 JSON 出错: ${e}`);
-            console.log(`原始响应体: ${data}`); // 打印原始响应体
-          } finally {
-            resolve();
-          }
-      });
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+
+
+      }
+    };
+
+    $.get(Url, async (err, resp, data) => {
+      if (logs == 1) {
+        console.log(`响应状态码: ${resp.status}`); // 打印状态码
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
+      }
+      try {
+        data = JSON.parse(data);  // 解析 JSON 数据
+        if (logs == 1) console.log(`⚠️宝箱视频任务执行结果 (第 ${i} 次): ${data.msg}`);
+        if (data.code === 0) {
+          $.boxVideo = data;  // 只有在成功时才保存
+        } else {
+          $.boxVideo = { code: data.code, msg: data.msg };  // 保存错误信息
+        }
+
+        resolve(data); // 返回数据结果，用于停止循环
+      } catch (e) {
+        console.log(`解析 JSON 出错: ${e}`);
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
+      } finally {
+        resolve();
+      }
+    });
   });
 }
 
@@ -463,42 +466,42 @@ function runBoxVideo(Cookie, i) {
 //等级广告视频
 function QuerVideo(Cookie) {
 
-return new Promise((resolve) => {
-let Url = {
-  url : "https://commontgw.reader.qq.com/v7_6_6/giveadreward?adPositionId=18",
-  headers: {
-            
-    'Accept':'application/json, text/plain, */*',
-              'Cookie': Cookie,
-  
-              
-          }      
-}
-$.get(Url, async (err, resp, data) => {
-  if (logs == 1) {
-    console.log(`响应状态码: ${resp.status}`); // 打印状态码
-    console.log(`原始响应体: ${data}`); // 打印原始响应体
+  return new Promise((resolve) => {
+    let Url = {
+      url: "https://commontgw.reader.qq.com/v7_6_6/giveadreward?adPositionId=18",
+      headers: {
+
+        'Accept': 'application/json, text/plain, */*',
+        'Cookie': Cookie,
+
+
+      }
     }
-  try {
-    data = JSON.parse(data);
-    if (logs == 1) console.log(`⚠️等级广告视频: ${data.isValid}`);
-    $.querVideo = data;
-  } catch (e) {
-    console.log(`解析 JSON 出错: ${e}`);
-    console.log(`原始响应体: ${data}`); // 打印原始响应体
-  } finally {
-    resolve();
-  }
-})
-})
+    $.get(Url, async (err, resp, data) => {
+      if (logs == 1) {
+        console.log(`响应状态码: ${resp.status}`); // 打印状态码
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
+      }
+      try {
+        data = JSON.parse(data);
+        if (logs == 1) console.log(`⚠️等级广告视频: ${data.isValid}`);
+        $.querVideo = data;
+      } catch (e) {
+        console.log(`解析 JSON 出错: ${e}`);
+        console.log(`原始响应体: ${data}`); // 打印原始响应体
+      } finally {
+        resolve();
+      }
+    })
+  })
 }
 
 
+//通知
+async function Msg() {
 
-function Msg() {
-  let t = "";
 
-  if ($.nickName?.code === 0) 
+  if ($.nickName?.code === 0)
     t += `【账户昵称】${$.nickName.data.nickName}\n`;
 
   if ($.checkin?.code === -4) {
@@ -508,27 +511,26 @@ function Msg() {
     t += `【首页签到】签到成功✅\n`;
   }
 
-  if ($.boxVideo?.code === 0) {
-      t += `【宝箱视频】获得 ${$.boxVideo.data} 💰赠币\n`;
-  } else if ($.boxVideo?.code === -1) {
+  if (boxVideoTotalCoins > 0) {
+    t += `【宝箱视频】获得 ${boxVideoTotalCoins} 💰赠币\n`;  // 输出总赠币
+  } else if ($.boxVideo?.code === -1)
+    {
       t += `【宝箱视频】${$.boxVideo.msg}\n`; 
   }
-  
-  
-    
-  if ($.querVideo?.code ==0 )
-      t += `【等级内广告视频】获得 ${$.querVideo.revardMsg}\n`;
-  else if ($.querVideo?.code == -5)
-      t += `【等级内广告视频】今天的视频已经看完了\n`;
 
-  if ($.awardWeek?.code === 0) 
+  if ($.querVideo?.code == 0)
+    t += `【等级内广告视频】获得 ${$.querVideo.revardMsg}\n`;
+  else if ($.querVideo?.code == -5)
+    t += `【等级内广告视频】今天的视频已经看完了\n`;
+
+  if ($.awardWeek?.code === 0)
     t += `【周抽奖】获得 ${$.awardWeek.data.name}\n`;
-  else if ($.awardWeek?.code === -3) 
+  else if ($.awardWeek?.code === -3)
     t += `【周抽奖】${$.awardWeek.msg}\n`;
 
-  if ($.awardMonth?.code === 0) 
+  if ($.awardMonth?.code === 0)
     t += `【月抽奖】获得 ${$.awardMonth.data.name}\n`;
-  else if ($.awardMonth?.code === -3) 
+  else if ($.awardMonth?.code === -3)
     t += `【月抽奖】${$.awardMonth.msg}\n`;
 
   $.msg($.name, "", t);
@@ -581,16 +583,16 @@ function Env(t, e) {
       return 'undefined' != typeof $environment && $environment['surge-version']
         ? 'Surge'
         : 'undefined' != typeof $environment && $environment['stash-version']
-        ? 'Stash'
-        : 'undefined' != typeof module && module.exports
-        ? 'Node.js'
-        : 'undefined' != typeof $task
-        ? 'Quantumult X'
-        : 'undefined' != typeof $loon
-        ? 'Loon'
-        : 'undefined' != typeof $rocket
-        ? 'Shadowrocket'
-        : void 0;
+          ? 'Stash'
+          : 'undefined' != typeof module && module.exports
+            ? 'Node.js'
+            : 'undefined' != typeof $task
+              ? 'Quantumult X'
+              : 'undefined' != typeof $loon
+                ? 'Loon'
+                : 'undefined' != typeof $rocket
+                  ? 'Shadowrocket'
+                  : void 0;
     }
     isNode() {
       return 'Node.js' === this.getEnv();
@@ -630,7 +632,7 @@ function Env(t, e) {
       if (a)
         try {
           s = JSON.parse(this.getdata(t));
-        } catch {}
+        } catch { }
       return s;
     }
     setjson(t, e) {
@@ -693,8 +695,8 @@ function Env(t, e) {
         s
           ? this.fs.writeFileSync(t, r)
           : a
-          ? this.fs.writeFileSync(e, r)
-          : this.fs.writeFileSync(t, r);
+            ? this.fs.writeFileSync(e, r)
+            : this.fs.writeFileSync(t, r);
       }
     }
     lodash_get(t, e, s) {
@@ -789,15 +791,15 @@ function Env(t, e) {
         (this.cktough = this.cktough ? this.cktough : require('tough-cookie')),
         (this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar()),
         t &&
-          ((t.headers = t.headers ? t.headers : {}),
+        ((t.headers = t.headers ? t.headers : {}),
           void 0 === t.headers.Cookie &&
-            void 0 === t.cookieJar &&
-            (t.cookieJar = this.ckjar));
+          void 0 === t.cookieJar &&
+          (t.cookieJar = this.ckjar));
     }
-    get(t, e = () => {}) {
+    get(t, e = () => { }) {
       switch (
-        (t.headers &&
-          (delete t.headers['Content-Type'],
+      (t.headers &&
+        (delete t.headers['Content-Type'],
           delete t.headers['Content-Length'],
           delete t.headers['content-type'],
           delete t.headers['content-length']),
@@ -812,13 +814,13 @@ function Env(t, e) {
           this.isSurge() &&
             this.isNeedRewrite &&
             ((t.headers = t.headers || {}),
-            Object.assign(t.headers, { 'X-Surge-Skip-Scripting': !1 })),
+              Object.assign(t.headers, { 'X-Surge-Skip-Scripting': !1 })),
             $httpClient.get(t, (t, s, a) => {
               !t &&
                 s &&
                 ((s.body = a),
-                (s.statusCode = s.status ? s.status : s.statusCode),
-                (s.status = s.statusCode)),
+                  (s.statusCode = s.status ? s.status : s.statusCode),
+                  (s.status = s.statusCode)),
                 e(t, s, a);
             });
           break;
@@ -870,11 +872,11 @@ function Env(t, e) {
               .then(
                 (t) => {
                   const {
-                      statusCode: a,
-                      statusCode: r,
-                      headers: i,
-                      rawBody: o,
-                    } = t,
+                    statusCode: a,
+                    statusCode: r,
+                    headers: i,
+                    rawBody: o,
+                  } = t,
                     n = s.decode(o, this.encoding);
                   e(
                     null,
@@ -895,16 +897,16 @@ function Env(t, e) {
               );
       }
     }
-    post(t, e = () => {}) {
+    post(t, e = () => { }) {
       const s = t.method ? t.method.toLocaleLowerCase() : 'post';
       switch (
-        (t.body &&
-          t.headers &&
-          !t.headers['Content-Type'] &&
-          !t.headers['content-type'] &&
-          (t.headers['content-type'] = 'application/x-www-form-urlencoded'),
+      (t.body &&
         t.headers &&
-          (delete t.headers['Content-Length'],
+        !t.headers['Content-Type'] &&
+        !t.headers['content-type'] &&
+        (t.headers['content-type'] = 'application/x-www-form-urlencoded'),
+        t.headers &&
+        (delete t.headers['Content-Length'],
           delete t.headers['content-length']),
         this.getEnv())
       ) {
@@ -916,20 +918,20 @@ function Env(t, e) {
           this.isSurge() &&
             this.isNeedRewrite &&
             ((t.headers = t.headers || {}),
-            Object.assign(t.headers, { 'X-Surge-Skip-Scripting': !1 })),
+              Object.assign(t.headers, { 'X-Surge-Skip-Scripting': !1 })),
             $httpClient[s](t, (t, s, a) => {
               !t &&
                 s &&
                 ((s.body = a),
-                (s.statusCode = s.status ? s.status : s.statusCode),
-                (s.status = s.statusCode)),
+                  (s.statusCode = s.status ? s.status : s.statusCode),
+                  (s.status = s.statusCode)),
                 e(t, s, a);
             });
           break;
         case 'Quantumult X':
           (t.method = s),
             this.isNeedRewrite &&
-              ((t.opts = t.opts || {}), Object.assign(t.opts, { hints: !1 })),
+            ((t.opts = t.opts || {}), Object.assign(t.opts, { hints: !1 })),
             $task.fetch(t).then(
               (t) => {
                 const {
@@ -962,11 +964,11 @@ function Env(t, e) {
           this.got[s](r, i).then(
             (t) => {
               const {
-                  statusCode: s,
-                  statusCode: r,
-                  headers: i,
-                  rawBody: o,
-                } = t,
+                statusCode: s,
+                statusCode: r,
+                headers: i,
+                rawBody: o,
+              } = t,
                 n = a.decode(o, this.encoding);
               e(
                 null,
@@ -1014,7 +1016,7 @@ function Env(t, e) {
         null != a &&
           '' !== a &&
           ('object' == typeof a && (a = JSON.stringify(a)),
-          (e += `${s}=${a}&`));
+            (e += `${s}=${a}&`));
       }
       return (e = e.substring(0, e.length - 1)), e;
     }
@@ -1116,7 +1118,7 @@ function Env(t, e) {
       const e = new Date().getTime(),
         s = (e - this.startTime) / 1e3;
       switch (
-        (this.log('', `🔔${this.name}, 结束! 🕛 ${s} 秒`),
+      (this.log('', `🔔${this.name}, 结束! 🕛 ${s} 秒`),
         this.log(),
         this.getEnv())
       ) {
