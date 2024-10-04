@@ -17,7 +17,7 @@ Boxjs定阅(https://raw.githubusercontent.com/General74110/Quantumult-X/master/B
 
 
 使用声明：⚠️⚠️⚠️此脚本仅供学习与交流，转载请注明出处
-        请勿转载与贩卖！⚠️⚠️⚠️
+        请勿贩卖！⚠️⚠️⚠️
 
 [Script]
 http-request ^https:\/\/eventv3\.reader\.qq\.com\/activity\/new_welfare\/queryAwardList script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
