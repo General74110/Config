@@ -73,9 +73,9 @@ let t = "";
 
 
     globalCookie = buildCookie(ywguidArr[0], ywkeyArr[0], ywtokenArr[0], csigsArr[0]);
-    if (logs == 1)
+    if (logs == 1){
       console.log(`生成全局 Cookie: ${globalCookie}`);
-
+}
     for (let i = 0; i < ywguidArr.length; i++) {
       if (ywguidArr[i] && ywkeyArr[i] && ywtokenArr[i]) {
         $.index = i + 1;
