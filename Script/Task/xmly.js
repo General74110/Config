@@ -1,13 +1,24 @@
 /*
+###喜马拉雅签到活动任务
+
+1️.签到
 
 
+
+[Script]
+cron "35 8 * * *" script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/xmly.js, timeout=1000, enabled=true, tag=喜马拉雅签到脚本, img-url=https://gitlab.com/lodepuly/iconlibrary/-/raw/main/App_icon/120px/Himalaya.png
+
+http-request https:\/\/mobile\.ximalaya\.com\/mobile-user\/v2\/homePage\/[\d\.]+\? script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/xmly.js, requires-body=true, timeout=60, enabled=true, tag=喜马拉雅获取Cookies, img-url=https://gitlab.com/lodepuly/iconlibrary/-/raw/main/App_icon/120px/Himalaya.png
+
+[MITM]
+hostname = *.ximalaya.com
 */
 const $ = new Env('喜马拉雅');
 let status;
 
 status = (status = ($.getval("xmlystatus") || "1")) > 1 ? `${status}` : "";
 
-const logs = 1; // 调试日志
+const logs = 0; // 调试日志
 let t = ""; // 通知
 
 let AllCookie = '';
