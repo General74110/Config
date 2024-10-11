@@ -98,7 +98,7 @@ function udid() {
 
 // 获取 Cookie
 function GetCookies() {
-  if ($request.url.indexOf("/signIn/v2/signIn") > -1) {
+  if ($request.url.indexOf("/v2/homePage") > -1) {
     let cookie = $request.headers['cookie'];
     if (cookie) {
       const TokenMatch = cookie.match(/1&_token=([^;]*)/);
