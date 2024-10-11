@@ -192,7 +192,7 @@ async function Msg() {
   if ($.sign && $.sign.data.code == -2) {
     t += `【签到结果】: ${$.sign.data.msg}💥\n`;
   } else if ($.sign && $.sign.data.code == 0) {
-    t += `【签到结果】: ${$.sign.data.msg}✨, 获得: ${$.sign.data.dayAward.name}积分, 当前已签到 ${$.sign.data.dayAward.day} 天\n`;
+    t += `【签到结果】: ${$.sign.data.msg}✨, 获得: ${$.sign.data.dayAward.name}, 当前已签到 ${$.sign.data.dayAward.day} 天\n`;
   }
   $.msg($.name, "", t);
 }
