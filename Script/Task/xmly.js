@@ -1,161 +1,189 @@
+/*
+
+
+*/
 const $ = new Env('喜马拉雅');
 let status;
 
 status = (status = ($.getval("xmlystatus") || "1")) > 1 ? `${status}` : "";
 
-const logs = 0; // 调试日志
+const logs = 1; // 调试日志
 let t = ""; // 通知
 
 let AllCookie = '';
 
-let xmlytoken =  $.getdata('xmlytoken') || process.env.xmlytoken || '默认值';
-if (logs == 1) {
-console.log(`xmlytoken: ${xmlytoken}`); // 打印查看是否获取到了正确的值
-}
-const xmlytokenArr = [xmlytoken];
-let xmlycount = parseInt($.getval('xmlycount') || process.env.xmlycount || '1', 10);
+// 检查是否在 Node.js 环境中
+const isNode = typeof process !== "undefined" && process.env;
 
-for (let i = 2; i <= xmlycount; i++) {
-    xmlytokenArr.push($.getdata(`xmlytoken${i}`) || process.env[`xmlytoken${i}`] || '');
+// 获取 xmlytoken 环境变量或者 BoxJS 的值，多个 token 用 & 分隔
+let xmlytoken = $.getdata('xmlytoken') || (isNode ? process.env.xmlytoken : '') || '默认值';
+if (logs == 1) {
+  console.log(`xmlytoken: ${xmlytoken}`); // 打印查看是否获取到了正确的值
 }
+
+// 将 token 通过 & 分隔，并转化为数组
+const xmlytokenArr = xmlytoken.split('#');
 
 (async () => {
-    if (typeof $request !== "undefined") {
-        GetCookies();
-    } else {
+  if (typeof $request !== "undefined") {
+    // 获取 Cookies 逻辑
+    GetCookies();
+  } else {
+    console.log(
+      `\n\n=============================================== 脚本执行 - 北京时间(UTC+8)：${new Date(
+        new Date().getTime() +
+          new Date().getTimezoneOffset() * 60 * 1000 +
+          8 * 60 * 60 * 1000
+      ).toLocaleString()} ===============================================\n`
+    );
 
-        console.log(
-            `\n\n=============================================== 脚本执行 - 北京时间(UTC+8)：${new Date(
-              new Date().getTime() +
-              new Date().getTimezoneOffset() * 60 * 1000 +
-              8 * 60 * 60 * 1000
-            ).toLocaleString()} ===============================================\n`);
+    // 循环处理每个 token
+    for (let i = 0; i < xmlytokenArr.length; i++) {
+      if (xmlytokenArr[i]) {
+        console.log(`开始【喜马拉雅账号 ${i + 1}】`);
 
-            AllCookie = SetCookie(xmlytokenArr[0])
-
-        for (let i = 0; i < xmlytokenArr.length; i++) {
-            if (xmlytokenArr[i]) {
-                
-                console.log(`开始【喜马拉雅${i + 1}】`);
-                if (logs == 1) {
-                  console.log(AllCookie); // 调用 SetCookie 函数，传递 xmlytoken 参数
-                }
-                await Sign(AllCookie);  // 签到
-                await $.wait(1000);  // 延迟
-                await Msg();  // 发送通知
-            }
-        }
-    }
-})().catch((e) => $.logErr(e)).finally(() => $.done());
-
-
-
-    function SetCookie(xmlytoken) {
-      
-        let IFDA = udid();
-       
-      
         // 构建 Cookie
-        let Cookie = `[idfa=${IFDA}; 1&_token=${xmlytoken}]`;
-      
-        return Cookie;
+        AllCookie = SetCookie(xmlytokenArr[i]);
+        if (logs == 1) {
+          console.log(`Cookie: ${AllCookie}`);
+        }
+
+        await GetNames(AllCookie); //获取昵称
+        await Sign(AllCookie);  // 签到
+        await $.wait(1000); // 延迟
+
+        // 发送通知
+        await Msg();
+      }
+    }
+  }
+})()
+  .catch((e) => $.logErr(e))
+  .finally(() => $.done());
+
+
+// 构建 Cookie
+function SetCookie(xmlytoken) {
+  let IFDA = udid(); // 生成随机 UUID
+
+  // 根据抓包的原始请求头，构建 cookie 字符串
+  let cookie = `1&_token=${xmlytoken}; idfa=${IFDA}; device_model=iPhone%2012; 1&_device=iPhone&${IFDA}&9.2.94; channel=ios-b1; impl=com.gemd.iting; c-oper=%E7%94%B5%E4%BF%A1; net-mode=WIFI; res=1170%2C2532`;
+
+  return cookie; // 返回构建好的 cookie 字符串
+}
+
+// 随机生成 UUID
+function udid() {
+  var s = [];
+  var hexDigits = "0123456789ABCDEF";
+  for (var i = 0; i < 36; i++) {
+    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+  }
+  s[14] = "4";
+  s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);
+  s[8] = s[13] = s[18] = s[23] = "-";
+  return s.join("");
+}
+
+// 获取 Cookie
+function GetCookies() {
+  if ($request.url.indexOf("/signIn/v2/signIn") > -1) {
+    let cookie = $request.headers['cookie'];
+    if (cookie) {
+      const TokenMatch = cookie.match(/1&_token=([^;]*)/);
+      if (TokenMatch) {
+        const Token = TokenMatch[1];
+        $.setdata(Token, 'xmlytoken'); // 设置 token 到本地存储
+        $.log(`获取到的 Token: ${Token}`);
+        $.msg($.name, "", `喜马拉雅获取 Cookie 成功`);
+      }
+    }
+  }
+}
+
+//获取昵称
+function GetNames(timeout = 1000) {
+  return new Promise((resolve) => {
+
+      let url = {
+          url: `https://m.ximalaya.com/x-web-activity/signIn/v2/querySignInInfo?aid=87&v=new`,
+          headers: {
+            'user-agent': 'ting_v9.2.94_c5(CFNetwork, iOS 16.7.2, iPhone13,2)',
+            'content-type': 'application/json',
+            'accept-language': 'zh-CN,zh-Hans;q=0.9',
+            'accept-encoding': 'gzip, deflate, br',
+            'content-length': '10',
+            'accept': '*/*',
+            'cookie': SetCookie(xmlytoken) 
+          },
       }
 
-/**
-* 随机 UUID 生成函数
-*/
-// 随机udid 大写
-function udid() {
-    var s = [];
-    var hexDigits = "0123456789ABCDEF";
-    for (var i = 0; i < 36; i++) {
-      s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-    }
-    s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
-    s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
-    s[8] = s[13] = s[18] = s[23] = "-";
-  
-    return s.join("");
-  }
-
-
-//获取ck
-function GetCookies() {
-    if ($request.url.indexOf("/signIn/v2/signIn") > -1) {
-        let cookie = $request.headers['cookie'];
-        if (cookie) {
-            const TokenMatch = cookie.match(/1&_token=([^;]*)/);
-
-            if (TokenMatch) {
-                const Token = TokenMatch[1];
-                $.setdata(Token, 'Token');
-                $.log(`获取到的 Token: ${Token}`);
-              }
-
-        
-        $.msg($.name, "", `喜马拉雅${status}获取Cookies成功`)
-
-    }
-}
-}
-
-
-
-
-//签到
-function Sign(Cookie, timeout = 3000) {
-    return new Promise((resolve) => {
-        let body = "{\"aid\":87}";
-
-        let url = {
-            url: `https://m.ximalaya.com/x-web-activity/signIn/v2/signIn?v=new`,
-            headers: {
-              'user-agent': 'ting_v9.2.94_c5(CFNetwork, iOS 16.7.2, iPhone13,2)',
-                'content-type': 'application/json',
-                'cookie': Cookie,
-        
-        
-              },
-            body: body,
+      $.get(url, async (err, resp, data) => {
+        if (logs == 1) {
+          console.log(`⚠️昵称原始响应体⚠️: ${data}`); // 打印原始响应体
         }
-        $.post(url, async (err, resp, data) => {
+        try {
+          data = JSON.parse(data);
+          if (logs == 1) {
+            console.log(`昵称结果数据: ${data.context.currentUser.nickname}`);
+          }
+          $.nickname = data;
+        } catch (e) {
+          console.log(`解析 JSON 出错: ${e}`);
+        } finally {
+          resolve();
+        }
+      }, timeout);
+    });
+  }
+  
 
-            if (logs == 1) {
-                console.log(`原始响应码: ${resp}`)
-                console.log(`原始响应体: ${data}`); // 打印原始响应体
-              }
-
-            try {
-                data = JSON.parse(data)
-                if (logs == 1) {
-                    console.log(`⚠️签到结果数据: ${data.msg}`);
-                  }
-
-                  $.sign = data;
-            } catch (e) {
-                console.log(`解析 JSON 出错: ${e}`);
-               
-
-            } finally {
-
-                resolve()
-            }
-        }, timeout)
-    })
+// 签到功能
+function Sign(timeout = 3000) {
+  return new Promise((resolve) => {
+    let body = "{\"aid\":87}";
+    let url = {
+      url: `https://m.ximalaya.com/x-web-activity/signIn/v2/signIn?v=new`,
+      headers: {
+        'user-agent': 'ting_v9.2.94_c5(CFNetwork, iOS 16.7.2, iPhone13,2)',
+        'content-type': 'application/json',
+        'accept-language': 'zh-CN,zh-Hans;q=0.9',
+        'accept-encoding': 'gzip, deflate, br',
+        'content-length': '10',
+        'accept': '*/*',
+        'cookie': SetCookie(xmlytoken) // 使用 SetCookie 函数返回的 cookie
+      },
+      body: body,
+    };
+    $.post(url, async (err, resp, data) => {
+      if (logs == 1) {
+        console.log(`⚠️签到原始响应体⚠️: ${data}`); // 打印原始响应体
+      }
+      try {
+        data = JSON.parse(data);
+        if (logs == 1) {
+          console.log(`签到结果数据: ${data.data.msg}`);
+        }
+        $.sign = data;
+      } catch (e) {
+        console.log(`解析 JSON 出错: ${e}`);
+      } finally {
+        resolve();
+      }
+    }, timeout);
+  });
 }
 
-
-//通知
+// 发送通知
 async function Msg() {
-    if ($.sign?.code == -2)
-        t += `【签到结果】: ${$.sign.msg}💥\n`;
-   else if ($.sign?.code == 0)
-        t += `【签到结果】: ${$.sign.msg}✨\n`; 
-
-
-
-    $.msg($.name, "", t);
-
+  if ($.nickname && $.nickname.data != null)
+    t += `【账号昵称】: এ${$.nickname.context.currentUser.nickname}এ\n`;
+  if ($.sign && $.sign.data.code == -2) {
+    t += `【签到结果】: ${$.sign.data.msg}💥\n`;
+  } else if ($.sign && $.sign.data.code == 0) {
+    t += `【签到结果】: ${$.sign.data.msg}✨, 获得: ${$.sign.data.dayAward.name}积分, 当前已签到 ${$.sign.data.dayAward.day} 天\n`;
+  }
+  $.msg($.name, "", t);
 }
 
 
