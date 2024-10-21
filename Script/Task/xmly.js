@@ -26,8 +26,17 @@ let AllCookie = '';
 // 检查是否在 Node.js 环境中
 const isNode = typeof process !== "undefined" && process.env;
 
-// 获取 xmlytoken 环境变量或者 BoxJS 的值，多个 token 用 & 分隔
-let xmlytoken = $.getdata('xmlytoken') || (isNode ? process.env.xmlytoken : '') || '默认值';
+if (isNode) {
+  // Node.js 环境中使用 require 加载依赖
+  const dotenv = require('dotenv');
+  dotenv.config(); // 读取 .env 文件中的环境变量
+  // 其他可能需要 require 的模块
+  const fs = require('fs');
+  const path = require('path');
+}
+
+// 根据环境来获取 xmlytoken
+let xmlytoken = $.getdata('xmlytoken') || (isNode ? process.env.xmlytoken : '') || '';
 if (logs == 1) {
   console.log(`xmlytoken: ${xmlytoken}`); // 打印查看是否获取到了正确的值
 }
@@ -37,9 +46,10 @@ const xmlytokenArr = xmlytoken.split('#');
 
 (async () => {
   if (typeof $request !== "undefined") {
-    // 获取 Cookies 逻辑
+    // Loon 环境下获取 Cookies 逻辑
     GetCookies();
   } else {
+    // 这是 Node.js 或者 Loon 环境下执行的逻辑
     console.log(
       `\n\n=============================================== 脚本执行 - 北京时间(UTC+8)：${new Date(
         new Date().getTime() +
@@ -115,7 +125,9 @@ function GetCookies() {
 //获取昵称
 function GetNames(timeout = 1000) {
   return new Promise((resolve) => {
+  console.log (AllCookie
 
+  )
       let url = {
           url: `https://m.ximalaya.com/x-web-activity/signIn/v2/querySignInInfo?aid=87&v=new`,
           headers: {
@@ -125,7 +137,7 @@ function GetNames(timeout = 1000) {
             'accept-encoding': 'gzip, deflate, br',
             'content-length': '10',
             'accept': '*/*',
-            'cookie': SetCookie(xmlytoken) 
+            'cookie': AllCookie
           },
       }
 
@@ -162,7 +174,7 @@ function Sign(timeout = 3000) {
         'accept-encoding': 'gzip, deflate, br',
         'content-length': '10',
         'accept': '*/*',
-        'cookie': SetCookie(xmlytoken) // 使用 SetCookie 函数返回的 cookie
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
       },
       body: body,
     };
