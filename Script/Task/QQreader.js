@@ -36,27 +36,35 @@ const General = 'QQ阅读';
 const $ = new Env(General);
 const logs = 0;  // 设置0关闭日志, 1开启日志
 
-let status;
-status = (status = ($.getval("status") || "1")) > 1 ? `${status}` : "";
+// 检查是否在 Node.js 环境中
+const isNode = typeof process !== "undefined" && process.env;
 
-const ywguidArr = [], ywkeyArr = [], ywtokenArr = [], csigsArr = [];
+if (isNode) {
+  // Node.js 环境中使用 require 加载依赖
+  const dotenv = require('dotenv');
+  dotenv.config(); // 读取 .env 文件中的环境变量
+}
 
+let ywguidArr = [], ywkeyArr = [], ywtokenArr = [], csigsArr = [];
 let globalCookie = '';
 let boxVideoTotalCoins = 0;
 let t = "";
 
+// 读取环境变量
+ywkeyArr.push($.getdata('ywkey') || (isNode ? process.env.ywkey : ''));
+ywguidArr.push($.getdata('ywguid') || (isNode ? process.env.ywguid : ''));
+ywtokenArr.push($.getdata('ywtoken') || (isNode ? process.env.ywtoken : ''));
+csigsArr.push($.getdata('csigs') || (isNode ? process.env.csigs : ''));
+
+
+
 !(async () => {
   if (typeof $request !== "undefined") {
+    // 如果是请求环境，获取 Cookies
     GetCookies();
   } else {
-
-    ywkeyArr.push($.getdata('ywkey'));
-    ywguidArr.push($.getdata('ywguid'));
-    ywtokenArr.push($.getdata('ywtoken'));
-    csigsArr.push($.getdata('csigs'));
-
+    // 环境变量处理
     let count = ($.getval('count') || '1');
-
     for (let i = 2; i <= count; i++) {
       ywkeyArr.push($.getdata(`ywkey${i}`));
       ywguidArr.push($.getdata(`ywguid${i}`));
@@ -71,16 +79,16 @@ let t = "";
         8 * 60 * 60 * 1000
       ).toLocaleString()} ===============================================\n`);
 
-
+    // 构建全局 Cookie
     globalCookie = buildCookie(ywguidArr[0], ywkeyArr[0], ywtokenArr[0], csigsArr[0]);
-    if (logs == 1){
+    if (logs == 1) {
       console.log(`生成全局 Cookie: ${globalCookie}`);
-}
+    }
+
     for (let i = 0; i < ywguidArr.length; i++) {
       if (ywguidArr[i] && ywkeyArr[i] && ywtokenArr[i]) {
         $.index = i + 1;
         console.log(`\n\n开始【QQ阅读任务】`);
-
 
         await NickName(globalCookie);
         await $.wait(1000);  // 延迟 1 秒
@@ -102,16 +110,15 @@ let t = "";
         if (currentDate === 15) {
           await GetAwardMonth(globalCookie); // 月抽奖
         }
+
         await $.wait(1000);  // 延迟 1 秒
         await Msg(); // 通知
       }
     }
   }
-
 })()
   .catch((e) => $.logErr(e))
   .finally(() => $.done());
-
 
 function buildCookie(ywguid, ywkey, ywtoken, csigs) {
 
