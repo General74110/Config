@@ -2,7 +2,7 @@
 #!desc= 用于获取Cookies(酷我音乐&QQ阅读&喜马拉雅&书旗小说)
 #!author= @General℡
 #!homepage= https://github.com/General74110
-#!date = 2024-10-12
+#!date = 2024-10-22
 #!icon= https://raw.githubusercontent.com/black2c7/TheMagic-Icons/main/Icons/Shouhou.png
 
 
@@ -10,7 +10,7 @@
 http-request ^https:\/\/integralapi\.kuwo\.cn\/api\/v1\/online\/sign\/v1\/music\/userBase\? script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/Kuwomusic.js, requires-body=true, timeout=10, enabled=true, tag=酷我音乐刷时长获取Cookie, img-url=https://raw.githubusercontent.com/LovedGM/Quantumult-X-TuBiao/main/zishi-cs/zs23.png
 
 
-http-request ^https:\/\/eventv3\.reader\.qq\.com\/activity\/new_welfare\/queryAwardList script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
+http-request ^https:\/\/iostgw\.reader\.qq\.com\/v7_6_6\/userinfo\? script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
 
 
 http-request ^https?:\/\/ocean\.shuqireader\.com\/api\/ad\/prize\/video\/reward script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/Shuqi.js, requires-body=true, timeout=10, enabled=true, tag=书旗小说刷听书时长, img-url=https://raw.githubusercontent.com/erdongchanyo/icon/main/taskicon/Shuqixiaoshuo.png
@@ -22,4 +22,4 @@ http-request https://appi.kuwo.cn/api/automobile/kuwo/v1/configuration/signature
 http-request https:\/\/mobile\.ximalaya\.com\/mobile-user\/v2\/homePage\/[\d\.]+\? script-path=https://raw.githubusercontent.com/General74110/Config/master/Script/Task/xmly.js, requires-body=true, timeout=60, enabled=true, tag=喜马拉雅获取Cookies, img-url=https://gitlab.com/lodepuly/iconlibrary/-/raw/main/App_icon/120px/Himalaya.png
 
 [MITM]
-hostname = eventv3.reader.qq.com, ocean.shuqireader.com, appi.kuwo.cn, *.ximalaya.com
+hostname = *.reader.qq.com, ocean.shuqireader.com, appi.kuwo.cn, *.ximalaya.com
