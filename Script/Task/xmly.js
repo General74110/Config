@@ -14,42 +14,65 @@ http-request https:\/\/mobile\.ximalaya\.com\/mobile-user\/v2\/homePage\/[\d\.]+
 hostname = *.ximalaya.com
 */
 const $ = new Env('喜马拉雅');
+const name = 'xmly';
+const zh_name = "喜马拉雅";
+const startTime = $.time('yyyy-MM-dd HH:mm:ss');
 let status;
 
 status = (status = ($.getval("xmlystatus") || "1")) > 1 ? `${status}` : "";
 
-const logs = 0; // 调试日志
-let t = ""; // 通知
-
+const logs = 0; // 调试日志级别
+const notify = $.isNode() ? require('./sendNotify') : '';  // 这里引用通知工具
+let t = ""; // 通知内容
 let AllCookie = '';
+
+let config = {
+  watch: { num: 0, time: '' },
+  spec: { num: 0, time: '' }
+};
+// 格式化时间
+const format = (ts, fmt = 'yyyy-MM-dd HH:mm:ss') => $.time(fmt, ts);
+
+// URL 编码
+const urlencode = (str) => {
+  str = (str + '').toString();
+  return encodeURIComponent(str)
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A')
+    .replace(/%20/g, '+');
+};
+
+
 
 // 检查是否在 Node.js 环境中
 const isNode = typeof process !== "undefined" && process.env;
 
 if (isNode) {
-  // Node.js 环境中使用 require 加载依赖
   const dotenv = require('dotenv');
   dotenv.config(); // 读取 .env 文件中的环境变量
-  // 其他可能需要 require 的模块
   const fs = require('fs');
   const path = require('path');
 }
 
 // 根据环境来获取 xmlytoken
 let xmlytoken = $.getdata('xmlytoken') || (isNode ? process.env.xmlytoken : '') || '';
-if (logs == 1) {
-  console.log(`xmlytoken: ${xmlytoken}`); // 打印查看是否获取到了正确的值
+if (logs >= 1) {
+  console.log(`xmlytoken: ${xmlytoken}`); // 调试日志：检查 xmlytoken 值
 }
 
-// 将 token 通过 & 分隔，并转化为数组
+// 将 token 通过 # 分隔，并转化为数组
 const xmlytokenArr = xmlytoken.split('#');
 
+// 主函数
 (async () => {
   if (typeof $request !== "undefined") {
-    // Loon 环境下获取 Cookies 逻辑
+    // Loon 环境下获取 Cookies
     GetCookies();
   } else {
-    // 这是 Node.js 或者 Loon 环境下执行的逻辑
+    // 打印脚本执行时间
     console.log(
       `\n\n=============================================== 脚本执行 - 北京时间(UTC+8)：${new Date(
         new Date().getTime() +
@@ -68,20 +91,58 @@ const xmlytokenArr = xmlytoken.split('#');
         if (logs == 1) {
           console.log(`Cookie: ${AllCookie}`);
         }
-
+       
         await GetNames(AllCookie); //获取昵称
         await Sign(AllCookie);  // 签到
         await $.wait(1000); // 延迟
 
-        // 发送通知
-        await Msg();
+     
+        // 广告视频任务
+       
+        let token = await adVideoGetToken(AllCookie);
+        if (token !== "null") {
+          await adVideoFinish(AllCookie, token);
+        } 
+      
+
+          await share(AllCookie);
+          await voiceAdd(AllCookie);
+          await voiceDelete(AllCookie);
+          await giveDynamicsLike(AllCookie);
+          await cancelDynamicsLike(AllCookie);
+          await giveVoiceLike(AllCookie);
+          await cancelVoiceLike(AllCookie);
+          await userAdd(AllCookie);
+          await userDelete(AllCookie);
+          await flushTaskRecords(AllCookie);
+
+          let uid = await getUid(AllCookie);
+          let content = urlencode(await wyy());
+          let commentId = await createComment(AllCookie, uid, content);
+          if (commentId !== 0) {
+            await deleteComment(commentId);
+          } 
+
+
+
+          let listset = [96, 168, 169, 170, 171, 336]; // 任务列表
+          for (let i = 0; i < listset.length; i++) {
+            await handInGeneralTask(AllCookie,listset[i]);
+          }
+
+         // 发送通知
+         if ($.isNode()) {
+            await notify.sendNotify(zh_name, "", t);
+          } else {
+         await Msg();
+          }
+        }
       }
     }
-  }
-})()
-  .catch((e) => $.logErr(e))
-  .finally(() => $.done());
-
+  })()
+    .catch((e) => $.logErr(e))
+    .finally(() => $.done());   
+    
 
 // 构建 Cookie
 function SetCookie(xmlytoken) {
@@ -197,17 +258,741 @@ function Sign(timeout = 3000) {
   });
 }
 
+//刷新列表
+async function flushTaskRecords(){
+  
+  let body = `{"aid":112}`
+  let myRequest = {
+      url: `http://m.ximalaya.com/web-activity/task/v2/taskRecords?tag=pc`,
+      headers: {
+        'user-agent': 'ting_v9.2.94_c5(CFNetwork, iOS 16.7.2, iPhone13,2)',
+        'content-type': 'application/json',
+        'accept-language': 'zh-CN,zh-Hans;q=0.9',
+        'accept-encoding': 'gzip, deflate, br',
+        'content-length': '10',
+        'accept': '*/*',
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+
+      if (logs == 1) {
+        console.log(`⚠️列表原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.reco = body;
+          if (body.ret == 0) {
+              console.log("- 刷新列表成功")
+              return true
+          } else {
+              console.log("- !!!刷新列表失败")
+              return false
+          }
+      },(reason) => {
+          console.log("- !!!刷新列表失败")
+          return false
+      }
+  )
+}
+
+//分享
+async function share(){
+  
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/thirdparty-share/share/content?srcId=422711158&srcType=7&subType=1098&tpName=weixin`,
+      headers: {
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+  }
+  return await $.http.get(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️分享任务原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.shar = body;
+          if (body.ret == 0) {
+              console.log("- 分享成功")
+              return true
+          } else {
+              console.log("- !!!分享失败")
+              return false
+          }
+      },(reason) => {
+          console.log("- !!!分享失败")
+          return false
+      }
+  )
+}
+//获取uid
+async function getUid(){
+  let myRequest = {
+      url: `https://passport.ximalaya.com/user-http-app/v1/nickname/info`,
+      headers: {
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+  }
+  let uid = 0
+  return await $.http.get(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️uid-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          if (body.ret == 0) {
+              uid = body.data.uid
+              $.log("- 获取uid成功")
+              return uid
+          } else {
+              $.log("- !!!获取uid失败")
+              return uid
+          }
+      },(reason) => {
+          $.log("- !!!获取uid失败")
+          return uid
+      }
+  )
+}
+
+//获取评论
+async function wyy(){
+  return await $.http.get({
+          url: `https://keai.icu/apiwyy/api`
+      }).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️获取评论-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          let content = body.content
+          return content
+      },(reason) => {
+          $.log("- 获取评论失败")
+          let content = "真不错呀"
+          return content
+      }
+  )
+}
+
+
+//评论
+async function createComment(uid, content){
+  
+  let body = `content=${content}&source=0&synchaos=1&timeStampType=1&trackId=424771991&uid=${uid}`
+  let myRequest = {
+      url: "https://mobile.ximalaya.com/comment-mobile/v1/create",
+      headers: {
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  let commentId = 0
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️评论-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.comme = body;
+          if (body.ret == 0) {
+              console.log("- 评论成功")
+              commentId = body.id
+          } else if (body.ret == 801){
+              console.log("- !!!请勿发送相同内容")
+          }else if (body.ret == 805){
+              console.log("- !!!发送内容频繁")
+          } else {
+              console.log("- !!!评论失败")
+          }
+          return commentId
+      },(reason) => {
+          console.log("- !!!评论失败")
+          return commentId
+      }
+  )
+}
+//删除评论
+async function deleteComment(commentId){
+  
+  let body = `commentId=${commentId}&trackId=424771991`
+  let myRequest = {
+      url: "https://mobile.ximalaya.com/comment-mobile/delete",
+      headers: {
+        'Content-Type' : `application/x-www-form-urlencoded`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️删除评论-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.decomme = body;
+          if (body.ret == 0) {
+            console.log("- 删除评论成功")
+              return true
+          } else {
+            console.log("- !!!未知评论状态")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!删除评论失败")
+          return false
+      }
+  )
+}
+
+async function voiceAdd(){
+  let body = `{"relatedId":423641159,"businessType":100}`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/general-relation-service/track/collect/add/1667873518984`,
+      headers: {
+        'Content-Type': `application/json`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 2) {
+        console.log(`⚠️收藏声音-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.voice = body;
+          if (body.ret == 0) {
+            console.log("- 收藏声音成功")
+              return true
+          } else if (body.ret == 103) {
+            console.log("- !!!此声音已收藏, 无法再次收藏")
+              return false
+          } else {
+            console.log("- !!!未知收藏状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!收藏声音失败")
+          return false
+      }
+  )
+}
+
+async function voiceDelete(){
+ 
+  let body = `{"relatedId":423641159,"businessType":100}`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/general-relation-service/track/collect/delete/ts-1667873513996`,
+      headers: {
+        'Content-Type': `application/json`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️删除声音收藏-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.devoice = body;
+          if (body.ret == 0) {
+            console.log("- 删除收藏声音成功")
+              return true
+          } else if (body.ret == 112) {
+            console.log("- !!!此声音未收藏, 无法删除")
+              return false
+          } else {
+            console.log("- !!!未知收藏状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!删除收藏声音失败")
+          return false
+      }
+  )
+}
+
+async function userAdd(){
+  let body = `bizType=11&isFollow=1&toUid=2342717`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/mobile/follow`,
+      headers: {
+        'Content-Type': `application/x-www-form-urlencoded`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️关注用户-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.user = body;
+          if (body.ret == 0) {
+            console.log("- 关注用户成功")
+              return true
+          } else if (body.ret == 3002) {
+            console.log("- !!!此用户已关注过")
+              return false
+          } else if (body.ret == 3001) {
+            console.log("- !!!关注频率过高,无法关注")
+            console.log("- 遇到此种情况,没有很好的解决办法,建议手动关注并交还任务")
+              return false
+          } else {
+            console.log("- !!!未知关注状况")
+            console.log(JSON.stringify(body))
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!关注用户失败")
+          return false
+      }
+  )
+}
+
+async function userDelete(){
+  
+  let body = `bizType=13&isFollow=0&toUid=2342717`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/mobile/follow`,
+      headers: {
+        'Content-Type': `application/x-www-form-urlencoded`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️取关用户-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.deuser = body;
+          if (body.ret == 0) {
+            console.log("- 取关用户成功")
+              return true
+          } else {
+            console.log("- !!!未知关注状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!取关用户失败")
+          return false
+      }
+  )
+}
+
+async function giveVoiceLike(){
+ 
+  let body = `favorite=1&trackId=423641159`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/favourite-business/favorite/track`,
+      headers: {
+        'Content-Type': `application/x-www-form-urlencoded`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️点赞声音-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.gvoice = body;
+          if (body.ret == 0) {
+            console.log("- 点赞声音成功")
+              return true
+          } else if (body.ret == 111) {
+            console.log("- !!!此声音已点赞过")
+              return false
+          } else {
+            console.log("- !!!未知声音点赞状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!点赞声音失败")
+          return false
+      }
+  )
+}
+
+async function cancelVoiceLike(){
+ 
+  let body = `favorite=0&trackId=423641159`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/favourite-business/favorite/track`,
+      headers: {
+        'Content-Type': `application/x-www-form-urlencoded`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️取消声音点赞-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.degvoice = body;
+          if (body.ret == 0) {
+            console.log("- 取消声音点赞成功")
+              return true
+          }else if (body.ret == -1) {
+            console.log("- !!!此声音尚未点赞, 无法取消")
+              return false
+          } else {
+            console.log("- !!!未知声音点赞状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!取消声音点赞失败")
+          return false
+      }
+  )
+}
+
+async function giveDynamicsLike(){
+
+  let body = `{"feedId":217014623}`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/chaos/v2/feed/praise/create`,
+      headers: {
+       'Content-Type': `application/json`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️动态点赞-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.gived = body;
+          if (body.ret == 0) {
+            console.log("- 点赞动态成功")
+              return true
+          } else {
+            console.log("- !!!未知动态点赞状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!点赞动态失败")
+          return false
+      }
+  )
+}
+
+async function cancelDynamicsLike(){
+
+  let body = `{"feedId":217014623}`
+  let myRequest = {
+      url: `https://mobile.ximalaya.com/chaos/v2/feed/praise/delete`,
+      headers: {
+        'Content-Type': `application/json`,
+         'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+       },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️取消动态点赞-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.degived = body;
+          if (body.ret == 0) {
+            console.log("- 取消动态点赞成功")
+              return true
+          } else {
+            console.log("- !!!未知动态点赞状况")
+              return false
+          }
+      },(reason) => {
+        console.log("- !!!取消动态点赞失败")
+          return false
+      }
+  )
+}
+//获取广告token
+async function adVideoGetToken(){
+      
+      let body = `{"aid":112,"taskId":254}`
+      let myRequest = {
+          url: `http://m.ximalaya.com/web-activity/task/v2/genTaskToken`,
+          headers: {
+            'Content-Type': `application/json`,
+            'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+          },
+          body: body
+      }
+      return await $.http.post(myRequest).then(
+         (response) => {
+          if (logs == 1) {
+            console.log(`⚠️获取广告token-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+          }
+              body = JSON.parse(response.body)
+              if (body.ret == 0) {
+                  let token = body.data.token
+                  return token
+              } else {
+                  $.log("- !!!token获取失败")
+                  let token = "null"
+                  return token
+              }
+          },(reason) => {
+              $.log("- !!!token获取失败")
+              let token = "null"
+              return token
+          }
+      )
+  }
+  //看广告
+  async function adVideoFinish(token){
+    
+    let body = `{"aid":112,"taskId":252,"token":"${token}","progress":1}`
+    let myRequest = {
+        url: `http://m.ximalaya.com/web-activity/task/v2/incrTaskProgress`,
+        headers: {
+          'Content-Type': `application/json`,
+          'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+        },
+        body: body
+    }
+    return await $.http.post(myRequest).then(
+       (response) => {
+        if (logs == 1) {
+          console.log(`⚠️看广告-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+        }
+            body = JSON.parse(response.body)
+            $.advideo = body;
+            if (body.ret == 0) {
+                if (body.data.status == 0) {
+                  console.log("- 本条视频广告观看已完成, 获得50点奖励")
+                    config.watch.num += 1
+                    config.watch.time = format(startTime)
+                    $.setdata(JSON.stringify(config.watch), name + "_watch")
+                    return true
+                } else if (body.data.status == -1) {
+                  console.log("### 今日观看广告任务已全部完成 ✅ ")
+                    config.watch.num = 6
+                    config.watch.time = format(startTime)
+                    console.setdata(JSON.stringify(config.watch), name + "_watch")
+                    return true
+                } else {
+                  console.log("- !!!未知完成状态")
+                  console.log(JSON.stringify(body.data))
+                    return false
+                }
+            } else {
+              console.log("- !!!观看广告任务交还失败")
+                return false
+            }
+        },(reason) => {
+          console.log("- !!!观看广告任务交还失败")
+            return false
+        }
+    )
+}
+
+async function handInGeneralTask(taskId){  
+  let body = `{"aid":112,"taskId":${taskId}}`
+  let myRequest = {
+      url: `http://m.ximalaya.com/web-activity/task/v2/drawTaskAward`,
+      headers: {
+        'Content-Type': `application/json`,
+        'cookie': AllCookie // 使用 AllCookie 函数返回的 cookie
+      },
+      body: body
+  }
+  return await $.http.post(myRequest).then(
+     (response) => {
+      if (logs == 1) {
+        console.log(`⚠️特殊任务-原始响应体⚠️: ${response.body}`); // 打印原始响应体
+      }
+          body = JSON.parse(response.body)
+          $.hand = body;
+          if (body.ret == 0) {
+              if (body.data.status == 0) { 
+                  if ((taskId > 167 && taskId < 173) || taskId == 96 || taskId == 336) {
+                      config.spec.num += 1
+                      config.spec.time = format(startTime)
+                      $.setdata(JSON.stringify(config.spec), name + "_spec")
+                      console.log("- 交还特殊任务成功, 获得奖励")
+                  } /* else {
+                      config.gene.num += 1
+                      config.gene.time = format(startTime)
+                      $.setdata(JSON.stringify(config.gene), name + "_gene")
+                      $.log("- 交还通用任务成功, 获得10点奖励")
+                  } */
+                  return true
+              } else if (body.data.status == 1) {
+                  if ((taskId > 167 && taskId < 173) || taskId == 96 || taskId == 336) {
+                      config.spec.num += 1
+                      config.spec.time = format(startTime)
+                      $.setdata(JSON.stringify(config.spec), name + "_spec")
+                      console.log("- 此项特殊任务今日已交还")
+                  } /* else {
+                      config.gene.num += 1
+                      config.gene.time = format(startTime)
+                      $.setdata(JSON.stringify(config.gene), name + "_gene")
+                      $.log("- 此项通用任务今日已交还")
+                  } */
+                  return true
+              } else if (body.data.status == -1) {
+                console.log("--- !!!此任务尚未完成,不能交还")
+                  return false
+              } else {
+                console.log("--- !!!未知交还状态")
+                console.log(JSON.stringify(body.data))
+                  return false
+              }
+          } else {
+            console.log("--- !!!交还任务失败")
+              return false
+          }
+      },(reason) => {
+        console.log("--- !!!交还通用任务失败")
+          return false
+      }
+  )
+}
+
+
 // 发送通知
 async function Msg() {
-  if ($.nickname && $.nickname.data != null)
-    t += `【账号昵称】: এ${$.nickname.context.currentUser.nickname}এ\n`;
+  if ($.nickname && $.nickname.data != null) {
+    t += `【账号昵称】 এ${$.nickname.context.currentUser.nickname}এ\n`;
+  }
   if ($.sign && $.sign.data.code == -2) {
-    t += `【签到结果】: ${$.sign.data.msg}💥\n`;
+    t += `【签到结果】 ${$.sign.data.msg}💥\n`;
   } else if ($.sign && $.sign.data.code == 0) {
     t += `【签到结果】: ${$.sign.data.msg}✨, 获得: ${$.sign.data.dayAward.name}, 当前已签到 ${$.sign.data.dayAward.day} 天\n`;
   }
-  $.msg($.name, "", t);
+
+
+  if ($.reco && $.reco.ret == 0) {
+    t += '任务列表刷新成功🏅\n';
+  } else {
+    t += '任务列表刷新失败☹️\n';
+  }
+
+  if ($.shar && $.shar.ret == 0) {
+    t += '- 分享成功🏅\n';
+  } else {
+    t += '- 分享失败☹️\n';
+  }
+
+  if ($.comme && $.comme.ret == 0) {
+    t += '- 评论成功🏅\n';
+  } else if ($.comme && $.comme.ret == 801) {
+    t += '- !!!请勿发送相同内容\n';
+  } else if ($.comme && $.comme.ret == 805) {
+    t += '- !!!发送内容频繁\n';
+  } else {
+    t += '- !!!评论失败\n';
+  }
+  if ($.decomme && $.decomme.ret == 0) {
+    t += '- 删除评论成功🏅\n'
+  } else {
+    t += '- 删除评论失败☹️\n';
+  }
+
+  if ($.voice && $.voice.ret == 0){
+    t += '- 收藏声音成功🏅\n';
+  } else if ($.voice && $.voice.ret == 103) {
+    t += '- !!!此声音已收藏, 无法再次收藏😊\n';
+  } else {
+    t += '- !!!收藏声音失败☹️\n';
+  }
+  if ($.devoice && $.devoice.ret == 0){
+    t += '- 删除收藏声音成功🏅\n';
+  } else if ($.devoice && $.devoice.ret == 112) {
+    t += '- !!!此声音未收藏, 无法删除😊\n';
+  } else {
+    t += '- !!!删除收藏声音失败☹️\n';
+  }
+
+if ($.user && $.user.ret == 0) {
+  t += '- 关注用户成功🏅\n';
+} else if ($.user && $.user.ret == 3002) {
+  t += '- !!!此用户已关注过✌️\n';
+} else if ($.user && $.user.ret == 3001) {
+  t += '- !!!关注频率过高,无法关注😓\n';
+} else {
+  '- 关注用户失败☹️\n';
 }
+if ($.deuser && $.deuser.ret == 0) {
+  t += '-- 取关用户成功🏅\n';
+} else {
+  '- 取关用户成功☹️\n';
+}
+
+if ($.gvoice && $.gvoice.ret == 0) {
+  t += `${$.gvoice.popCopy}🏅\n`;
+} else if ($.gvoice && $.gvoice.ret == 111) {
+  t += '- !!!此声音已点赞过🏅\n';
+} else {
+  t += '- !!!点赞声音失败☹️\n';
+}
+if ($.degvoice && $.degvoice.ret == 0) {
+  t += '- 取消声音点赞成功🏅\n';
+} else if ($.degvoice && $.degvoice.ret == -1) {
+  t += `- !!!此声音尚未点赞, 无法取消\n`;
+} else {
+  t += `- !!!取消声音点赞失败☹️\n`;
+}
+
+if ($.gived && $.gived.ret == 0) {
+  t += '- 点赞动态成功🏅\n';
+} else {
+  t += '- 点赞动态失败☹️\n';
+}
+if ($.degived && $.degived.ret == 0) {
+  t += '- 取消点赞动态成功🏅\n';
+} else {
+  t += '- 取消点赞动态失败☹️\n';
+}
+
+if ($.advideo && $.advideo.ret == 0 && $.advideo.data.status == 0) {
+  t += '- 本条视频广告观看已完成\n';
+} else if ($.advideo && $.advideo.ret == 0 && $.advideo.data.status == -1) {
+  t += '### 今日观看广告任务已全部完成 ✅\n';
+} else {
+  t += '- !!!观看广告任务失败☹️\n';
+}
+
+if ($.hand && $.hand.ret == 0 && $.hand.data.status == 0) {
+  t += '- 交还特殊任务成功, 获得奖励\n';
+  } else if ($.hand && $.hand.ret == 0 && $.hand.data.status == 1) {
+    t += '- 此项特殊任务今日已交还\n';
+  } else if ($.hand && $.hand.ret == 0 && $.hand.data.status == -1) {
+    t += '--- !!!此任务尚未完成,不能交还\n';
+  } else {
+    t += '--- !!!交还任务失败\n';
+  }
+   
+  
+    $.msg(zh_name, "", t);
+  
+
+ 
+}
+
+/*
+  $.msg($.name, "", t);
+  // 发送通知
+  if ($.isNode()) {
+    await notify.sendNotify(zh_name, t);
+  } else {
+    $.msg(zh_name, "", t);
+  }
+}*/
 
 
 // https://github.com/chavyleung/scripts/blob/master/Env.min.js
