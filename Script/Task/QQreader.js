@@ -203,45 +203,43 @@ function udid2() {
 
 // 获取Cookies
 function GetCookies() {
-  if ($request.url.indexOf("/new_welfare/init") > -1) {
-    let cookie = $request.headers['Cookie'];
+  // 获取请求头中的相关字段
+  const ywkey = $request.headers['ywkey'];
+  const ywguid = $request.headers['ywguid'];
+  const ywtoken = $request.headers['ywtoken'];
+  const csigs = $request.headers['csigs'];
 
-    if (cookie) {
-      const ywkeyMatch = cookie.match(/ywkey=([^;]*)/);
-      const ywguidMatch = cookie.match(/ywguid=([^;]*)/);
-      const ywtokenMatch = cookie.match(/ywtoken=([^;]*)/);
-      const csigsMatch = cookie.match(/csigs=([^;]*)/);
-
-      if (ywkeyMatch) {
-        const ywkey = ywkeyMatch[1];
-        $.setdata(ywkey, 'ywkey');
-        $.log(`获取到的 ywkey: ${ywkey}`);
-      }
-
-      if (ywguidMatch) {
-        const ywguid = ywguidMatch[1];
-        $.setdata(ywguid, 'ywguid');
-        $.log(`获取到的 ywguid: ${ywguid}`);
-      }
-
-      if (ywtokenMatch) {
-        const ywtoken = ywtokenMatch[1];
-        $.setdata(ywtoken, 'ywtoken');
-        $.log(`获取到的 ywtoken: ${ywtoken}`);
-      }
-
-      if (csigsMatch) {
-        const csigs = csigsMatch[1];
-        $.setdata(csigs, 'csigs');
-        $.log(`获取到的 csigs: ${csigs}`);
-      }
-
-      $.setdata(cookie, 'updatedCookie');
-      $.msg($.name, "", `QQ阅读获取 Cookie 成功`);
-    }
+  if (ywkey) {
+    $.setdata(ywkey, 'ywkey');
+    $.log(`获取到的 ywkey: ${ywkey}`);
+  } else {
+    $.log("未能获取到 ywkey");
   }
-}
 
+  if (ywguid) {
+    $.setdata(ywguid, 'ywguid');
+    $.log(`获取到的 ywguid: ${ywguid}`);
+  } else {
+    $.log("未能获取到 ywguid");
+  }
+
+  if (ywtoken) {
+    $.setdata(ywtoken, 'ywtoken');
+    $.log(`获取到的 ywtoken: ${ywtoken}`);
+  } else {
+    $.log("未能获取到 ywtoken");
+  }
+
+  if (csigs) {
+    $.setdata(csigs, 'csigs');
+    $.log(`获取到的 csigs: ${csigs}`);
+  } else {
+    $.log("未能获取到 csigs");
+  }
+
+  // 成功后通知
+  $.msg($.name, "", `QQ阅读获取 Cookie 成功`);
+}
 
 
 
