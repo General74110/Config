@@ -20,7 +20,7 @@ Boxjs定阅(https://raw.githubusercontent.com/General74110/Quantumult-X/master/B
         请勿贩卖！⚠️⚠️⚠️
 
 [Script]
-http-request ^https:\/\/eventv3\.reader\.qq\.com\/activity\/new_welfare\/queryAwardList script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
+http-request ^https:\/\/iostgw\.reader\.qq\.com\/v7_6_6\/userinfo\? script-path=https://raw.githubusercontent.com/General74110/Quantumult-X/master/Task/QQreader.js, timeout=10, enabled=true, tag=QQ阅读获取Cookies, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/QQ.png
 
 
 [Task]
@@ -28,7 +28,7 @@ cron "30 6 * * *" script-path=https://raw.githubusercontent.com/General74110/Qua
 
 
 [MITM]
-hostname = eventv3.reader.qq.com
+hostname = *.reader.qq.com
 
 
 */
