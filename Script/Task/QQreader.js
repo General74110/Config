@@ -3,18 +3,19 @@ APP：QQ阅读
 版本：////
 作者：General℡
 
-脚本功能：签到 看广告视频获取书币 (抽奖（只有在每个星期天和每月15号才会抽奖）)
+脚本功能：签到 看广告视频获取赠币 (抽奖（只有在每个星期天和每月15号才会抽奖）)
 
 bug：签到任务里的看视频总是只有每天第一次的第一条有效
 
 Boxjs定阅(https://raw.githubusercontent.com/General74110/Quantumult-X/master/Boxjs/General74110.json)
 
-操作：点击 书架顶端的签到入口（非必需签到才能获取） 获取Cookies！获取完后关掉重写，避免不必要的MITM
+操作：
+Loon:点击 【我的】 获取Cookies！获取完后关掉重写，避免不必要的MITM
+青龙：抓取ywguid, ywkey,ywtoken,csigs填入环境变量
+ 
 
 
-注意⚠️：当前脚本只测试Loon， 其他自测！
-
-
+注意⚠️：当前脚本只测试Loon，node.js 其他自测！
 
 使用声明：⚠️⚠️⚠️此脚本仅供学习与交流，转载请注明出处
         请勿贩卖！⚠️⚠️⚠️
@@ -34,8 +35,9 @@ hostname = *.reader.qq.com
 */
 const General = 'QQ阅读';
 const $ = new Env(General);
+const zh_name = 'QQ阅读';
 const logs = 0;  // 设置0关闭日志, 1开启日志
-
+const notify = $.isNode() ? require('./sendNotify') : '';
 // 检查是否在 Node.js 环境中
 const isNode = typeof process !== "undefined" && process.env;
 
@@ -49,6 +51,7 @@ let ywguidArr = [], ywkeyArr = [], ywtokenArr = [], csigsArr = [];
 let globalCookie = '';
 let boxVideoTotalCoins = 0;
 let t = "";
+
 
 // 读取环境变量
 ywkeyArr.push($.getdata('ywkey') || (isNode ? process.env.ywkey : ''));
@@ -138,43 +141,6 @@ function buildCookie(ywguid, ywkey, ywtoken, csigs) {
   return Cookie;
 }
 
-/**
-* 获取昵称
-*/
-function NickName(Cookie) {
-  return new Promise((resolve) => {
-    let Url = {
-      url: "https://commontgw.reader.qq.com/account/h5/level/mine",
-      headers: {
-        'Accept': 'application/json, text/plain, */*',
-        'Cookie': Cookie,
-      }
-    };
-
-    $.get(Url, async (err, resp, data) => {
-      if (err) {
-        console.log(`请求失败: ${err}`);
-        resolve();
-        return;
-      }
-      if (logs == 1) {
-        console.log(`响应状态码: ${resp.status}`);  // 打印状态码
-        console.log(`原始响应体: ${data}`);  // 打印原始响应体
-      }
-      try {
-        data = JSON.parse(data);
-        if (logs == 1)
-          console.log(`⚠️获取昵称数据: ${data.data.nickName}`);
-        $.nickName = data;
-      } catch (e) {
-        console.log(`解析 JSON 出错: ${e}`);
-        console.log(`原始响应体: ${data}`);  // 打印原始响应体
-      } finally {
-        resolve();
-      }
-    });
-  });
-}
 
 /**
 * 随机 UUID 生成函数
@@ -245,18 +211,16 @@ function GetCookies() {
 
 /**
 * NickName 函数，获取昵称
-* 通过传入的 Cookie 进行请求
+/**
+* 获取昵称
 */
 function NickName(Cookie) {
   return new Promise((resolve) => {
     let Url = {
       url: "https://commontgw.reader.qq.com/account/h5/level/mine",
       headers: {
-
         'Accept': 'application/json, text/plain, */*',
         'Cookie': Cookie,
-
-
       }
     };
 
@@ -267,8 +231,8 @@ function NickName(Cookie) {
         return;
       }
       if (logs == 1) {
-        console.log(`响应状态码: ${resp.status}`); // 打印状态码
-        console.log(`原始响应体: ${data}`); // 打印原始响应体
+        console.log(`响应状态码: ${resp.status}`);  // 打印状态码
+        console.log(`原始响应体: ${data}`);  // 打印原始响应体
       }
       try {
         data = JSON.parse(data);
@@ -277,13 +241,14 @@ function NickName(Cookie) {
         $.nickName = data;
       } catch (e) {
         console.log(`解析 JSON 出错: ${e}`);
-        console.log(`原始响应体: ${data}`); // 打印原始响应体
+        console.log(`原始响应体: ${data}`);  // 打印原始响应体
       } finally {
         resolve();
       }
     });
   });
 }
+
 
 
 // 签到
@@ -538,7 +503,12 @@ async function Msg() {
   else if ($.awardMonth?.code === -3)
     t += `【月抽奖】${$.awardMonth.msg}\n`;
 
-  $.msg($.name, "", t);
+   // 判断环境，发送通知
+   if ($.isLoon() || $.isQuanX() || $.isSurge()) {
+    $.msg(zh_name, "", t);
+  } else if ($.isNode()) {
+    await notify.sendNotify(zh_name, t);
+  }
 }
 
 
